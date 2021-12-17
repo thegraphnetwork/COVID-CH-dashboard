@@ -1,0 +1,9 @@
+#This file should be copied to .config.toml in the home of the user executing the streamlit app 
+
+[server]
+port=8502 # change port number. By default streamlit uses 8501 port
+headless=true # This will eliminate automatically open browser
+
+[browser] # This ip and port will show in command prompt
+serverAddress = "epigraphhub.org" # Put your Local IP or Domain Name
+serverPort = 8502
