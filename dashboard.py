@@ -14,7 +14,7 @@ import home
 import clustering
 
 
-PAGES = {"Home": home, "Clustering analyzis":clustering, "Bayesean Inference": bayesian_inference, 
+PAGES = {"Home": home, "Cluster analysis":clustering, "Bayesian Inference": bayesian_inference, 
          "SIR-based Forecasting": SIR_forecast, "Forecast": forecast}
 
 select_page = st.sidebar.selectbox(
