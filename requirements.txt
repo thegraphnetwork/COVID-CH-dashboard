@@ -2,7 +2,9 @@ streamlit
 plotly
 streamlit-echarts
 cython
+wheel
 pandas
+numpy
 scipy
 sqlalchemy
 psycopg2-binary
