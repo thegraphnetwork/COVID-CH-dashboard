@@ -307,9 +307,9 @@ def app():
     
     st.plotly_chart(fig_for, use_container_width = True)
     
-    st.write('Table with the number of hospitalizations forecasted:')
+    st.write('## Forecasted number of Daily Hospitalizations')
     
-    st.dataframe(df)
+    st.dataframe(df.astype(float))
     
     filename = 'forecast_hosp.csv'
     download_button_str = download_button(df, filename, f'Click here to download {filename}', pickle_it=False)
