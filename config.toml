@@ -1,4 +1,4 @@
-#This file should be copied to .config.toml in the home of the user executing the streamlit app 
+# This file should be copied to .steamlit/config.toml in the home of the user executing the streamlit app 
 
 [server]
 port=8502 # change port number. By default streamlit uses 8501 port

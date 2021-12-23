@@ -261,20 +261,19 @@ def download_button(object_to_download, download_filename, button_text, pickle_i
 
 def app(): 
     
-    st.title('Forecast of Hospitalizations')
+    st.title('Forecast of Daily Hospitalizations')
     
     st.write('''
-             We evaluated one Machine-Learning model to forecast the hospitalizations 
-             in Geneva. The model is namely Gradient Boosting Machine (LightGBM)
-             and is itself an ensemble of piece-wise regressions fitted to
-             the subsets of the data, minimizing a Mean-squared loss function. 
+             To forecast the daily hospitalizations in canton Geneva, we have applied 
+             Gradient Boosting Machine quantile regression model (LightGBM).
+
              This model is non-parametric, quite robust to non-Gaussian data, and
              includes automatically variable (predictor) selection. 
              
-             To make the forecast, we use the series of cases, hospitalizations,
-             tests, ICU patients from all the cantons belonging to the same cluster
-             of the one we are forecasting for, and total vaccinations per hundred in 
-             Switzerland. The regression, in somewhat compact notation, is defined as:  ''')
+             In the model, we use as predictors the series of cases, hospitalizations,
+             tests and ICU occupations from all the cantons belonging to the same cluster
+             of the one we are forecasting for, as well as total vaccinations per hundred thousand in 
+             Switzerland. The regression, in somewhat compact notation, is defined as  ''')
              
     st.latex(r'''
              H_{k,t} \sim C_{k,t-\tau_i} + H_{k,t-\tau_i} +V_{k,t-\tau_i} + ICU_{k,t-\tau_i},
@@ -307,12 +306,14 @@ def app():
     
     st.plotly_chart(fig_for, use_container_width = True)
     
-    st.write('## Forecasted number of Daily Hospitalizations')
+    st.write('## Forecasted Number of Daily Hospitalizations')
+    "The table below contains the median and 90% bands for the forecasts."
     
-    st.dataframe(df.astype(float))
+    df['lower'] = df.lower.astype(float)
+    st.dataframe(df)
     
     filename = 'forecast_hosp.csv'
-    download_button_str = download_button(df, filename, f'Click here to download {filename}', pickle_it=False)
+    download_button_str = download_button(df, filename, f'Download data', pickle_it=False)
 
     st.markdown(download_button_str, unsafe_allow_html=True)
     
