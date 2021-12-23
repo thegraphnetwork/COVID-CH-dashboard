@@ -309,7 +309,7 @@ def app():
     st.write('## Forecasted Number of Daily Hospitalizations')
     "The table below contains the median and 90% bands for the forecasts."
     
-    df['lower'] = df.lower.astype(float)
+    df['lower'] = df['lower'].astype(float)
     st.dataframe(df)
     
     filename = 'forecast_hosp.csv'
