@@ -310,7 +310,7 @@ def app():
     "The table below contains the median and 90% bands for the forecasts."
     
     df['lower'] = df['lower'].astype(float)
-    st.dataframe(df)
+    st.table(df)
     
     filename = 'forecast_hosp.csv'
     download_button_str = download_button(df, filename, f'Download data', pickle_it=False)
