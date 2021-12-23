@@ -306,8 +306,8 @@ def app():
     
     st.plotly_chart(fig_for, use_container_width = True)
     
-    st.write('## Forecasted Number of Daily Hospitalizations')
-    "The table below contains the median and 90% bands for the forecasts."
+    # st.write('## Forecasted Number of Daily Hospitalizations')
+    # "The table below contains the median and 90% bands for the forecasts."
     
     # df['lower'] = df['lower'].astype(float)
     # st.table(df)
