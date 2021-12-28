@@ -12,6 +12,8 @@ import forecast
 import home
 import clustering
 
+st.set_option('deprecation.showPyplotGlobalUse', False)
+
 st.set_page_config(page_title='COVID19 Hospitalization Forecasts', 
                     page_icon=":chart:", 
                     layout="wide", 
@@ -24,8 +26,10 @@ st.set_page_config(page_title='COVID19 Hospitalization Forecasts',
 st.sidebar.image('tgn.png')
 
 
-PAGES = {"Home": forecast, "Cluster analysis":clustering, "Bayesian Inference": bayesian_inference, 
-         "SIR-based Forecasting": SIR_forecast, "credits": home}
+PAGES = {"Home": forecast, "Cluster analysis":clustering, 
+        # "Bayesian Inference": bayesian_inference, 
+        #  "Rt estimation": SIR_forecast, 
+         "credits": home}
 
 select_page = st.sidebar.selectbox(
     "Select the analysis:",

@@ -33,6 +33,6 @@ def app():
              The result of the clustering is shown in the dendrogram below:
              ''')
 
-    clusters, all_reg, fig = compute_clusters('cases', t=0.8)
+    clusters, all_reg, fig = compute_clusters('cases', t=0.8, plot=True)
     
     st.pyplot(fig) 
