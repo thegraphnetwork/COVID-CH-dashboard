@@ -35,10 +35,3 @@ select_page = st.sidebar.selectbox(
 page = PAGES[select_page]
 
 page.app()
-
-
-# Hospitalizations vs cases devo fazer por trimestre? 
-
-
-
-# Bayesian Inference 

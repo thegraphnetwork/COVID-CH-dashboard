@@ -17,20 +17,27 @@ import uuid
 import re
 import plotly.graph_objects as go 
 import streamlit as st 
-from get_data import *
+from get_data import get_canton_data, get_updated_data
 from sqlalchemy import create_engine
 engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 
 
-def plot_predictions(title = None):
+def plot_predictions(table_name, curve, title = None):
     ''''
     Function to plot the predictions
-    '''
     
-    target_curve_name = 'hosp'
+    params table_name: Name of the table with the predictions (name used to save
+                                                               the table in the database)
+    
+    params curve: Curve related with the predictions that will be plotted
+    
+    return plotly figure
+    '''
+    target_curve_name = curve
+    
     canton = 'GE'
     
-    df_val = pd.read_sql_table(f'ml_validation', engine, schema = 'switzerland', index_col = 'date')
+    df_val = pd.read_sql_table(table_name, engine, schema = 'switzerland', index_col = 'date')
     
     target = df_val['target']
     train_size = df_val['train_size'].values[0]
@@ -64,22 +71,20 @@ def plot_predictions(title = None):
     yaxis_title=f'New {names[target_curve_name]}',
     template = 'plotly_white')
 
-    # adicionando os traços 
+    # adding the traces
 
     # Data
     fig.add_trace(go.Scatter(x = target.index, y = target.values, name = 'Data',line=dict(color = 'black')))
     
-    #fig.add_trace(go.Scatter(x = get_real_data('2021-12-09').index, y = get_real_data('2021-12-09').ID.values, name = 'Updated Data',line=dict(color = 'green')))
-
-    #print(get_real_data(target.index[0]).index)
-    # separação entre os dados de treino e de teste
+    
+    # Line separing training data and test data
     fig.add_trace(go.Scatter(x=[point, point], y=[min_val,max_val], name="Out of sample predictions", mode = 'lines',line=dict(color = '#1CA71C', dash = 'dash')))
 
     # Separação entre os dados de teste e o forecast
-    fig.add_trace(go.Scatter(x=[target.index[-1], target.index[-1]], y=[min_val,max_val], name="Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
+    #fig.add_trace(go.Scatter(x=[target.index[-1], target.index[-1]], y=[min_val,max_val], name="Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
 
-    # KNN
-    # LightGBM
+    
+    # LightGBM predictions
     fig.add_trace(go.Scatter(x = x, y = y50, name = 'LightGBM',line=dict(color = '#FF7F0E')))
     
     fig.add_trace(go.Scatter(x = x, y = y5, line=dict(color = '#FF7F0E',width=0), showlegend=False))
@@ -101,18 +106,33 @@ def plot_predictions(title = None):
 
 
 
-def plot_forecast(title= None):
+def plot_forecast(table_name, curve, title= None):
     ''''
     Function to plot the forecast 
+    
+    params table_name: Name of the table with the predictions (name used to save
+                                                      the table in the database)
+    
+    params curve: Curve related with the predictions that will be plotted
+    
+    return[0] plotly figure
+    return[1] dataframe with the values forecasted 
+    
     '''
-    target_curve_name = 'hosp'
+    target_curve_name = curve
     canton = 'GE'
     
     
-    df_for = pd.read_sql_table('ml_forecast', engine, schema = 'switzerland', index_col = 'date')
+    df_for = pd.read_sql_table(table_name, engine, schema = 'switzerland', index_col = 'date')
     
-    ydata = get_canton_data('hosp', ['GE'])
-    ydata =  ydata.rolling(7).mean().dropna()
+    if table_name == 'ml_forecast_hosp_up':
+        ydata = get_updated_data(smooth = True)
+        
+    else:
+        curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity'}
+        ydata = get_canton_data(curves[curve], ['GE'])
+        ydata = ydata.resample('D').mean() 
+        ydata =  ydata.rolling(7).mean().dropna()
     
     
     dates_forecast = df_for.index
@@ -139,13 +159,24 @@ def plot_forecast(title= None):
     yaxis_title=f'New {names[target_curve_name]}',
     template = 'plotly_white')
 
-    # adicionando os traços 
-
+    # adding the traces
     # Data
-    fig.add_trace(go.Scatter(x = ydata.index[-150:], y = ydata.entries[-150:], name = 'Data',line=dict(color = 'black')))
+    
+    if table_name == 'ml_forecast_hosp_up':
+        fig.add_trace(go.Scatter(x = ydata.index[-150:], y = ydata.hosp_GE[-150:], name = 'Data',line=dict(color = 'black')))
+    
+        # Separation between data and forecast 
+        fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min( min(ydata.hosp_GE[-150:]), min(forecast95)),max(max(ydata.hosp_GE[-150:]), max(forecast95))], name="Data/Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
 
-    # Separation between data and forecast 
-    fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min( min(ydata.entries[-150:]), min(forecast95)),max(max(ydata.entries[-150:]), max(forecast95))], name="Data/Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
+    
+    else: 
+        
+        column_curves = {'hosp': 'entries', 'ICU_patients': 'ICU_Covid19Patients'}
+        
+        fig.add_trace(go.Scatter(x = ydata.index[-150:], y = ydata[column_curves[curve]][-150:], name = 'Data',line=dict(color = 'black')))
+    
+        # Separation between data and forecast 
+        fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min( min(ydata[column_curves[curve]][-150:]), min(forecast95)),max(max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
 
     # LightGBM
     fig.add_trace(go.Scatter(x = dates_forecast, y = forecast50, name = 'Forecast LightGBM',line=dict(color = '#FF7F0E')))
@@ -174,6 +205,7 @@ def plot_forecast(title= None):
     
     df_for.rename(columns={'index': 'date'}, inplace = True)
     return fig, df_for
+
 
 def download_button(object_to_download, download_filename, button_text, pickle_it=False):
     """
@@ -288,13 +320,20 @@ def app():
              
     st.write('''
              In the Figure below, it is plotted the predictions of the model 
-             in the sample and out the sample.  
+             in the sample and out the sample for the new hospitalizations.  
 
              ''')
-    fig  = plot_predictions() 
+    fig  = plot_predictions('ml_validation_hosp_up', curve = 'hosp') 
     st.plotly_chart(fig, use_container_width = True)
     
-    fig_for, df = plot_forecast()
+    st.write('''
+             In the Figure below, it is plotted the predictions of the model 
+             in the sample and out the sample for the ICU patients.  
+
+             ''')
+    fig  = plot_predictions('ml_validation_icu', curve = 'ICU_patients') 
+    st.plotly_chart(fig, use_container_width = True)
+    
     
     st.write('''
              In the Figure below, it is plotted the forecast for the next 14 days.
@@ -303,18 +342,42 @@ def app():
              The table can be downloaded by clicking on the button. 
 
              ''')
-    
+             
+    select_data = st.checkbox('Updated data')
+
+    if select_data:
+         fig_for, df = plot_forecast('ml_forecast_hosp_up', curve = 'hosp')
+         st.plotly_chart(fig_for, use_container_width = True)
+         filename = 'forecast_hosp.csv'
+         download_button_str = download_button(df, filename, f'Download data', pickle_it=False)
+
+         st.markdown(download_button_str, unsafe_allow_html=True)
+         
+    else:
+         fig_for, df = plot_forecast('ml_forecast_hosp', curve = 'hosp')
+         st.plotly_chart(fig_for, use_container_width = True)
+         filename = 'forecast_hosp.csv'
+         download_button_str = download_button(df, filename, 'Download data', pickle_it=False)
+
+         st.markdown(download_button_str, unsafe_allow_html=True)
+        
+    st.write('''
+             In the Figure below, it is plotted the forecast of ICU patients 
+             for the next 14 days. The number of ICU patients forecasted is also shown 
+             in the table below,
+             the lower and upper columns represent the 95% confidence interval.
+             The table can be downloaded by clicking on the button. 
+
+             ''')
+             
+    fig_for, df = plot_forecast('ml_forecast_icu', curve = 'ICU_patients')
     st.plotly_chart(fig_for, use_container_width = True)
-    
-    # st.write('## Forecasted Number of Daily Hospitalizations')
-    # "The table below contains the median and 90% bands for the forecasts."
-    
-    # df['lower'] = df['lower'].astype(float)
-    # st.table(df)
-    
-    filename = 'forecast_hosp.csv'
-    download_button_str = download_button(df, filename, f'Download data', pickle_it=False)
+    filename = 'forecast_ICU.csv'
+    download_button_str = download_button(df, filename, 'Download data', pickle_it=False)
 
     st.markdown(download_button_str, unsafe_allow_html=True)
+
+    
+    
     
     
