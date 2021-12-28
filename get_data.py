@@ -101,7 +101,7 @@ def compute_clusters(curve, t, plot=False):
     '''
 
     df = pd.read_sql_table(f'foph_{curve}', engine_public, schema = 'switzerland', columns = ['datum','geoRegion',  'entries'])
-                           'datum', 'geoRegion',  'entries'])
+    
     df.index = pd.to_datetime(df.datum)
 
     inc_canton = df.pivot(columns='geoRegion', values='entries')
@@ -125,11 +125,8 @@ def compute_clusters(curve, t, plot=False):
         fig, ax = plt.subplots(1,1, figsize=(15,10), dpi = 300)
         hcluster.dendrogram(linkage, labels=inc_canton.columns, color_threshold=0.3, ax=ax)
         ax.set_title('Result of the hierarchical clustering of the series', fontdict= {'fontsize': 20})
-    ax.set_title('Result of the hierarchical clustering of the series',
-                 fontdict={'fontsize': 20})
         plt.xticks(fontsize = 16)
         plt.yticks(fontsize = 16)
-        
     else: 
         fig = None
     

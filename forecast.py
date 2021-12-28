@@ -319,16 +319,16 @@ def app():
              ''')
              
     st.write('''
-             In the Figure below, it is plotted the predictions of the model 
-             in the sample and out the sample for the new hospitalizations.  
+            ## Model Validation
+             In the Figure below, the model's predictions are plotted against data, both in sample (for 
+             the data range used for training) and out of  sample (part of the series not used during model training).  
 
              ''')
     fig  = plot_predictions('ml_validation_hosp_up', curve = 'hosp') 
     st.plotly_chart(fig, use_container_width = True)
     
     st.write('''
-             In the Figure below, it is plotted the predictions of the model 
-             in the sample and out the sample for the ICU patients.  
+             Below, we have the same as above, but for the ICU occupancy.  
 
              ''')
     fig  = plot_predictions('ml_validation_icu', curve = 'ICU_patients') 
@@ -336,14 +336,18 @@ def app():
     
     
     st.write('''
-             In the Figure below, it is plotted the forecast for the next 14 days.
-             The number of hospitalizations forecasted is also shown in the table below,
-             the lower and upper columns represent the 95% confidence interval.
-             The table can be downloaded by clicking on the button. 
+    ## 14-day Forecasts
+             Below, we have the forecast for the next 14 days, for both Hospitalizations,
+             and ICU occupancy
+             
+             The 95% confidence bounds are also shown
+             The table with the forecasts can be downloaded by clicking on the button. 
+
+            The checkbox selects the usage of HUG updated hospitalization data, in the generation of the forecasts.
 
              ''')
              
-    select_data = st.checkbox('Updated data')
+    select_data = st.checkbox('Updated data', value=True)
 
     if select_data:
          fig_for, df = plot_forecast('ml_forecast_hosp_up', curve = 'hosp')
@@ -361,14 +365,7 @@ def app():
 
          st.markdown(download_button_str, unsafe_allow_html=True)
         
-    st.write('''
-             In the Figure below, it is plotted the forecast of ICU patients 
-             for the next 14 days. The number of ICU patients forecasted is also shown 
-             in the table below,
-             the lower and upper columns represent the 95% confidence interval.
-             The table can be downloaded by clicking on the button. 
-
-             ''')
+    
              
     fig_for, df = plot_forecast('ml_forecast_icu', curve = 'ICU_patients')
     st.plotly_chart(fig_for, use_container_width = True)
