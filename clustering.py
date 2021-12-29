@@ -8,6 +8,7 @@ Created on Tue Dec 21 14:58:03 2021
 
 import streamlit as st 
 from get_data import compute_clusters
+from geoanalysis import correlation_map
 
 
 def app():
@@ -36,3 +37,12 @@ def app():
     clusters, all_reg, fig = compute_clusters('cases', t=0.8, plot=True)
     
     st.pyplot(fig) 
+    st.write("""
+    ## Correlation Map
+    In the map below each canton is colored according to its correlation to the Canton of Geneva.
+    """)
+    curve = st.selectbox("On which series you want to base the correlation on?",
+                ('cases', 'hospitalizations') 
+    )
+    figmap = correlation_map(curve=curve)
+    st.pyplot(figmap)

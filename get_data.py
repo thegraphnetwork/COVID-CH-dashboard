@@ -7,6 +7,7 @@ Created on Sat Dec 18 22:31:54 2021
 """
 
 import pandas as pd
+import geopandas as gpd
 import numpy as np
 from scipy.signal import correlate, correlation_lags
 import scipy.cluster.hierarchy as hcluster
@@ -296,3 +297,9 @@ def get_canton_data(curve, canton, ini_date=None):
         df = df[ini_date:]
 
     return df
+
+def get_ch_map():
+    chmap = gpd.read_postgis("select * from switzerland.map_cantons;", 
+                    con=engine_public, geom_col="geometry")
+    chmap['geoRegion'] = chmap.HASC_1.transform(lambda x: x.split('.')[-1])
+    return chmap

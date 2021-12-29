@@ -9,3 +9,5 @@ scipy
 sqlalchemy
 psycopg2-binary
 openpyxl
+matplotlib
+geopandas
