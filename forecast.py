@@ -104,6 +104,101 @@ def plot_predictions(table_name, curve, title = None):
     return fig 
 
 
+def plot_cases():
+    ''''
+    Function to plot the new cases according to FOPH in GE
+    
+    return[0] plotly figure
+    return[1] last data of new cases reported
+    
+    '''
+    
+    df = pd.read_sql_table('foph_cases', engine, schema = 'switzerland', index_col = 'datum', columns=[ 'geoRegion', 'entries'])
+    df.index = pd.to_datetime(df.index)
+    
+    df = df.loc[df.geoRegion =='GE']
+    df.sort_index(inplace = True)
+    df = df['2021-08-01':]
+    
+    # computing the rolling average 
+    m_movel = df.rolling(7).mean().dropna()
+    
+    fig = go.Figure()
+        
+    title = "New Cases - GE"
+    
+    fig.update_layout(width=900, height=500, title={
+                'text': title,
+                'y':0.87,
+                'x':0.42,
+                'xanchor': 'center',
+                'yanchor': 'top'},
+        xaxis_title='Report Date',
+        yaxis_title='New cases',
+      template = 'plotly_white')
+    
+    fig.add_trace(go.Bar(x = df.index, y = df.entries, name = 'New cases', marker_color='rgba(31, 119, 180, 0.7)'))
+    
+    
+    fig.add_trace(go.Scatter(x = m_movel.index, y = m_movel.entries, name = 'Rolling average',line=dict(color = 'black', width = 2)))
+        
+    fig.update_xaxes( showgrid=True, gridwidth=1, gridcolor='lightgray',zeroline = False,
+        showline=True, linewidth=1, linecolor='black', mirror = True)
+    
+    fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
+        showline=True, linewidth=1, linecolor='black', mirror = True)
+    
+    return fig, df.index[-1] 
+
+def plot_hosp():
+    ''''
+    Function to plot the number of new hospitalizations for GE
+    
+    
+    returns plotly figure
+    
+    '''
+    
+    df = pd.read_sql_table('foph_hosp', engine, schema = 'switzerland', index_col = 'datum', columns=[ 'geoRegion', 'entries'])
+    df.index = pd.to_datetime(df.index)
+    
+    df = df.loc[df.geoRegion =='GE']
+    df.sort_index(inplace = True)
+    df = df['2021-08-01':]
+    
+    # computing the rolling average 
+    m_movel = df.rolling(7).mean().dropna()
+    
+    fig = go.Figure()
+        
+    title = "New Hospitalizations - GE"
+    
+    fig.update_layout(width=900, height=500, title={
+                'text': title,
+                'y':0.87,
+                'x':0.42,
+                'xanchor': 'center',
+                'yanchor': 'top'},
+        xaxis_title='Report Date',
+        yaxis_title='New hospitalizations',
+      template = 'plotly_white')
+    
+    fig.add_trace(go.Bar(x = df.index, y = df.entries, name = 'New hospitalizations', marker_color='rgba(31, 119, 180, 0.7)'))
+    
+    
+    fig.add_trace(go.Scatter(x = m_movel.index, y = m_movel.entries, name = 'Rolling average',line=dict(color = 'black', width = 2)))
+        
+    fig.update_xaxes( showgrid=True, gridwidth=1, gridcolor='lightgray',zeroline = False,
+        showline=True, linewidth=1, linecolor='black', mirror = True)
+    
+    fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
+        showline=True, linewidth=1, linecolor='black', mirror = True)
+    
+    return fig
+    
+    
+
+
 
 
 def plot_forecast(table_name, curve, title= None):
@@ -293,6 +388,21 @@ def download_button(object_to_download, download_filename, button_text, pickle_i
 
 def app(): 
     
+    st.title('Number of cases and Hospitalizations')
+    
+    fig_c, last_date = plot_cases()
+    
+    st.write(f'''
+             The graphs below show the number of cases and hospitalizations in Geneva
+             according to FOPH. The data was updated in: {last_date}
+             ''')
+             
+    
+    fig_h = plot_hosp()
+    
+    st.plotly_chart(fig_c, use_container_width = True)
+    st.plotly_chart(fig_h, use_container_width = True)
+    
     st.title('Forecast of Daily Hospitalizations')
     
     st.write('''
@@ -350,27 +460,27 @@ def app():
     select_data = st.checkbox('Updated data', value=True)
 
     if select_data:
-         fig_for, df = plot_forecast('ml_forecast_hosp_up', curve = 'hosp')
+         fig_for, df_hosp = plot_forecast('ml_forecast_hosp_up', curve = 'hosp')
          st.plotly_chart(fig_for, use_container_width = True)
          filename = 'forecast_hosp.csv'
-         download_button_str = download_button(df, filename, f'Download data', pickle_it=False)
+         download_button_str = download_button(df_hosp, filename, 'Download data', pickle_it=False)
 
          st.markdown(download_button_str, unsafe_allow_html=True)
          
     else:
-         fig_for, df = plot_forecast('ml_forecast_hosp', curve = 'hosp')
+         fig_for, df_hosp = plot_forecast('ml_forecast_hosp', curve = 'hosp')
          st.plotly_chart(fig_for, use_container_width = True)
          filename = 'forecast_hosp.csv'
-         download_button_str = download_button(df, filename, 'Download data', pickle_it=False)
+         download_button_str = download_button(df_hosp, filename, 'Download data', pickle_it=False)
 
          st.markdown(download_button_str, unsafe_allow_html=True)
         
     
              
-    fig_for, df = plot_forecast('ml_forecast_icu', curve = 'ICU_patients')
+    fig_for, df_icu = plot_forecast('ml_forecast_icu', curve = 'ICU_patients')
     st.plotly_chart(fig_for, use_container_width = True)
     filename = 'forecast_ICU.csv'
-    download_button_str = download_button(df, filename, 'Download data', pickle_it=False)
+    download_button_str = download_button(df_icu, filename, 'Download data', pickle_it=False)
 
     st.markdown(download_button_str, unsafe_allow_html=True)
 
