@@ -388,13 +388,17 @@ def download_button(object_to_download, download_filename, button_text, pickle_i
 
 def app(): 
     
-    st.title('Number of cases and Hospitalizations')
+    st.title('Current Status in Geneva')
     
     fig_c, last_date = plot_cases()
     
     st.write(f'''
-             The graphs below show the number of cases and hospitalizations in Geneva
-             according to FOPH. The data was updated in: {last_date}
+             Below the daily number of cases and hospitalizations in Geneva
+             reported by FOPH. 
+
+            For forescasts of other cantons, see sidebar menu.
+             
+             The data was last updated in: ***{last_date.date()}***
              ''')
              
     
@@ -406,11 +410,8 @@ def app():
     st.title('Forecast of Daily Hospitalizations')
     
     st.write('''
-             To forecast the daily hospitalizations in canton Geneva, we have applied 
+             Daily hospitalizations in canton Geneva, were forecasted using a 
              Gradient Boosting Machine quantile regression model (LightGBM).
-
-             This model is non-parametric, quite robust to non-Gaussian data, and
-             includes automatically variable (predictor) selection. 
              
              In the model, we use as predictors the series of cases, hospitalizations,
              tests and ICU occupations from all the cantons belonging to the same cluster
