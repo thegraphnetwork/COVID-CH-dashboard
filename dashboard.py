@@ -10,7 +10,7 @@ import bayesian_inference
 import SIR_forecast
 import forecast
 import for_other_cantons 
-import home
+import credits
 import clustering
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -31,7 +31,7 @@ PAGES = {"Home": forecast, "Cluster analysis":clustering,
          'Forecast for other cantons': for_other_cantons,
         # "Bayesian Inference": bayesian_inference, 
         #  "Rt estimation": SIR_forecast, 
-         "credits": home}
+         "credits": credits}
 
 select_page = st.sidebar.selectbox(
     "Select the analysis:",
