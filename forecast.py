@@ -388,7 +388,7 @@ def download_button(object_to_download, download_filename, button_text, pickle_i
 
 def app(): 
     
-    st.title('Switzerland COVID-19 Hospitalizatiokn forecasts')
+    st.title('Switzerland COVID-19 Hospitalization forecasts')
     
     fig_c, last_date, last_cases = plot_cases()
     fig_h, last_hosp = plot_hosp()
