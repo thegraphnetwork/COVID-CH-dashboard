@@ -7,6 +7,7 @@ Created on Sat Dec 18 22:31:54 2021
 """
 
 import pandas as pd
+import streamlit as st
 import geopandas as gpd
 import numpy as np
 from scipy.signal import correlate, correlation_lags
@@ -261,7 +262,7 @@ def get_combined_data(data_types, georegion, vaccine=True, smooth=True):
     return df
 
 
-# @st.cache
+#@st.cache
 def get_canton_data(curve, canton, ini_date=None):
     '''
     This function provide a dataframe for the curve selected in the param curve and

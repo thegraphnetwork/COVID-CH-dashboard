@@ -8,8 +8,9 @@ Created on Sat Dec 18 20:40:33 2021
 import streamlit as st
 import bayesian_inference
 import SIR_forecast
-import forecast 
-import home
+import forecast
+import for_other_cantons 
+import credits
 import clustering
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -27,9 +28,10 @@ st.sidebar.image('tgn.png')
 
 
 PAGES = {"Home": forecast, "Cluster analysis":clustering, 
+         'Forecast for other cantons': for_other_cantons,
         # "Bayesian Inference": bayesian_inference, 
         #  "Rt estimation": SIR_forecast, 
-         "credits": home}
+         "credits": credits}
 
 select_page = st.sidebar.selectbox(
     "Select the analysis:",
