@@ -148,7 +148,7 @@ def plot_cases():
     fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
         showline=True, linewidth=1, linecolor='black', mirror = True)
     
-    return fig, df.index[-1] 
+    return fig, df.index[-1], df.entries[-1]
 
 def plot_hosp():
     ''''
@@ -194,7 +194,7 @@ def plot_hosp():
     fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
         showline=True, linewidth=1, linecolor='black', mirror = True)
     
-    return fig
+    return fig, df.entries[-1]
     
     
 
@@ -390,19 +390,17 @@ def app():
     
     st.title('Current Status in Geneva')
     
-    fig_c, last_date = plot_cases()
+    fig_c, last_date, last_cases = plot_cases()
+    fig_h, last_hosp = plot_hosp()
     
     st.write(f'''
-             Below the daily number of cases and hospitalizations in Geneva
-             reported by FOPH. 
+             On  **{last_date.date()}**, the FOPH (Federal Office of Public Health) reported {last_cases} new cases and {last_hosp} new hospitalizations.
 
-            For forescasts of other cantons, see sidebar menu.
-             
-             The data was last updated in: ***{last_date.date()}***
+            For forecasts of other cantons, see sidebar menu.
              ''')
              
     
-    fig_h = plot_hosp()
+    
     
     st.plotly_chart(fig_c, use_container_width = True)
     st.plotly_chart(fig_h, use_container_width = True)

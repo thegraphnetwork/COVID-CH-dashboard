@@ -12,11 +12,13 @@ import plotly.graph_objects as go
 from forecast import download_button
 from get_data import get_canton_data  
 from sqlalchemy import create_engine
+from cachetools import cached
 engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 
 
 
-#@st.cache
+# @st.cache(allow_output_mutation=True)
+@cached(cache={})
 def get_curve(curve):
     '''
     Function to get the cases and hosp data in the database
@@ -40,7 +42,7 @@ def plot_cases(canton):
     
     df = get_curve('cases')
     
-    df = df.loc[df.geoRegion == canton]
+    df = df[df.geoRegion == canton]
     df.sort_index(inplace = True)
     df = df['2021-08-01':]
     
@@ -72,7 +74,7 @@ def plot_cases(canton):
     fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
         showline=True, linewidth=1, linecolor='black', mirror = True)
     
-    return fig, df.index[-1] 
+    return fig, df.index[-1], df.entries[-1]
 
 def plot_hosp(canton):
     '''
@@ -117,7 +119,7 @@ def plot_hosp(canton):
     fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
         showline=True, linewidth=1, linecolor='black', mirror = True)
     
-    return fig
+    return fig, df.entries[-1]
 
 def plot_predictions(table_name, curve, canton, title = None):
     ''''
@@ -310,14 +312,14 @@ def app():
     
     st.title('Number of cases and Hospitalizations')
     
-    fig_c, last_date = plot_cases(canton)
+    fig_c, last_date, last_cases = plot_cases(canton)
     
     st.write(f'''
-             The graphs below show the number of cases and hospitalizations in Geneva
+             The graphs below show the number of cases and hospitalizations in {canton}
              according to FOPH. The data was updated in: {str(last_date)[:10]}
              ''')
              
-    fig_h = plot_hosp(canton)
+    fig_h, last_hosp = plot_hosp(canton)
     
     st.plotly_chart(fig_c, use_container_width = True)
     st.plotly_chart(fig_h, use_container_width = True)
