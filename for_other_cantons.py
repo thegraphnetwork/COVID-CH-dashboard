@@ -305,7 +305,7 @@ def app():
     st.title('Number of cases and Hospitalizations')
     
 
-    fig_c, last_date, last_cases = plot_cases(canton)
+    fig_c, last_date, last_cases = plot_cases_canton(canton)
 
     
     st.write(f'''
@@ -314,7 +314,7 @@ def app():
              ''')
              
 
-    fig_h, last_hosp = plot_hosp(canton)
+    fig_h, last_hosp = plot_hosp_canton(canton)
 
     
     st.plotly_chart(fig_c, use_container_width = True)
