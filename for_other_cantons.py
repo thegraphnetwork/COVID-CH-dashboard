@@ -26,7 +26,7 @@ def get_curve(curve):
     
     return df
 
-def plot_cases(canton):
+def plot_cases_canton(canton):
     
     ''''
     Function to plot the new cases according to FOPH in any canton
@@ -49,7 +49,7 @@ def plot_cases(canton):
     
     fig = go.Figure()
         
-    title = f"New Cases - {canton}"
+    title = f"{canton}"
     
     fig.update_layout(width=900, height=500, title={
                 'text': title,
@@ -74,7 +74,7 @@ def plot_cases(canton):
     
     return fig, df.index[-1] 
 
-def plot_hosp(canton):
+def plot_hosp_canton(canton):
     '''
     Function to plot the number of new hospitalizations for any canton
     
@@ -94,7 +94,7 @@ def plot_hosp(canton):
     
     fig = go.Figure()
         
-    title = f"New Hospitalizations - {canton}"
+    title = f"{canton}"
     
     fig.update_layout(width=900, height=500, title={
                 'text': title,
@@ -119,7 +119,7 @@ def plot_hosp(canton):
     
     return fig
 
-def plot_predictions(table_name, curve, canton, title = None):
+def plot_predictions_canton(table_name, curve, canton, title = None):
     ''''
     Function to plot the predictions
     
@@ -157,7 +157,7 @@ def plot_predictions(table_name, curve, canton, title = None):
     
     if title == None: 
         
-        title = f"{names[target_curve_name]} - {canton}"
+        title = f"{canton}"
 
     fig.update_layout(width=900, height=500, title={
             'text': title,
@@ -201,7 +201,7 @@ def plot_predictions(table_name, curve, canton, title = None):
 
     return fig 
 
-def plot_forecast(table_name,canton, curve, title= None):
+def plot_forecast_canton(table_name,canton, curve, title= None):
     ''''
     Function to plot the forecast 
     
@@ -239,7 +239,7 @@ def plot_forecast(table_name,canton, curve, title= None):
     
     if title == None: 
         
-        title = f"{names[target_curve_name]} - {canton}"
+        title = f"{canton}"
 
     fig.update_layout(width=900, height=500, title={
             'text': title,
@@ -254,21 +254,13 @@ def plot_forecast(table_name,canton, curve, title= None):
     # adding the traces
     # Data
     
-    if table_name == 'ml_forecast_hosp_up':
-        fig.add_trace(go.Scatter(x = ydata.index[-150:], y = ydata.hosp_GE[-150:], name = 'Data',line=dict(color = 'black')))
-    
-        # Separation between data and forecast 
-        fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min( min(ydata.hosp_GE[-150:]), min(forecast95)),max(max(ydata.hosp_GE[-150:]), max(forecast95))], name="Data/Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
-
-    
-    else: 
         
-        column_curves = {'hosp': 'entries', 'ICU_patients': 'ICU_Covid19Patients'}
+    column_curves = {'hosp': 'entries', 'ICU_patients': 'ICU_Covid19Patients'}
         
-        fig.add_trace(go.Scatter(x = ydata.index[-150:], y = ydata[column_curves[curve]][-150:], name = 'Data',line=dict(color = 'black')))
+    fig.add_trace(go.Scatter(x = ydata.index[-150:], y = ydata[column_curves[curve]][-150:], name = 'Data',line=dict(color = 'black')))
     
-        # Separation between data and forecast 
-        fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min( min(ydata[column_curves[curve]][-150:]), min(forecast95)),max(max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
+    # Separation between data and forecast 
+    fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min( min(ydata[column_curves[curve]][-150:]), min(forecast95)),max(max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
 
     # LightGBM
     fig.add_trace(go.Scatter(x = dates_forecast, y = forecast50, name = 'Forecast LightGBM',line=dict(color = '#FF7F0E')))
@@ -310,14 +302,14 @@ def app():
     
     st.title('Number of cases and Hospitalizations')
     
-    fig_c, last_date = plot_cases(canton)
+    fig_c, last_date = plot_cases_canton(canton)
     
     st.write(f'''
              The graphs below show the number of cases and hospitalizations in Geneva
              according to FOPH. The data was updated in: {str(last_date)[:10]}
              ''')
              
-    fig_h = plot_hosp(canton)
+    fig_h = plot_hosp_canton(canton)
     
     st.plotly_chart(fig_c, use_container_width = True)
     st.plotly_chart(fig_h, use_container_width = True)
@@ -328,7 +320,7 @@ def app():
              the data range used for training) and out of  sample (part of the series not used during model training).  
 
              ''')
-    fig_val  = plot_predictions('ml_val_hosp_all_cantons', curve = 'hosp', canton = canton)
+    fig_val  = plot_predictions_canton('ml_val_hosp_all_cantons', curve = 'hosp', canton = canton)
     
     st.plotly_chart(fig_val, use_container_width = True)
     
@@ -337,7 +329,7 @@ def app():
 
              ''')
              
-    fig_val_icu  = plot_predictions('ml_val_icu_all_cantons', curve = 'ICU_patients', canton = canton)
+    fig_val_icu  = plot_predictions_canton('ml_val_icu_all_cantons', curve = 'ICU_patients', canton = canton)
     
     st.plotly_chart(fig_val_icu, use_container_width = True)
     
@@ -352,14 +344,14 @@ def app():
 
              ''')
              
-    fig_for, df_hosp = plot_forecast('ml_for_hosp_all_cantons', canton= canton, curve = 'hosp')
+    fig_for, df_hosp = plot_forecast_canton('ml_for_hosp_all_cantons', canton= canton, curve = 'hosp')
     st.plotly_chart(fig_for, use_container_width = True)
     filename = 'forecast_hosp.csv'
     download_button_str = download_button(df_hosp, filename, 'Download data', pickle_it=False)
 
     st.markdown(download_button_str, unsafe_allow_html=True)
     
-    fig_for_icu, df_icu = plot_forecast('ml_for_icu_all_cantons', canton= canton, curve = 'ICU_patients')
+    fig_for_icu, df_icu = plot_forecast_canton('ml_for_icu_all_cantons', canton= canton, curve = 'ICU_patients')
     st.plotly_chart(fig_for_icu, use_container_width = True)
     filename = 'forecast_icu.csv'
     download_button_str = download_button(df_icu, filename, 'Download data', pickle_it=False)
