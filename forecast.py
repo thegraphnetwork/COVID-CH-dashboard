@@ -59,7 +59,7 @@ def plot_predictions(table_name, curve, title = None):
     
     if title == None: 
         
-        title = f"{names[target_curve_name]} - {canton}"
+        title = f"{canton}"
 
     fig.update_layout(width=900, height=500, title={
             'text': title,
@@ -125,7 +125,7 @@ def plot_cases():
     
     fig = go.Figure()
         
-    title = "New Cases - GE"
+    title = "GE"
     
     fig.update_layout(width=900, height=500, title={
                 'text': title,
@@ -171,7 +171,7 @@ def plot_hosp():
     
     fig = go.Figure()
         
-    title = "New Hospitalizations - GE"
+    title = "GE"
     
     fig.update_layout(width=900, height=500, title={
                 'text': title,
@@ -242,7 +242,7 @@ def plot_forecast(table_name, curve, title= None):
     
     if title == None: 
         
-        title = f"{names[target_curve_name]} - {canton}"
+        title = f"{canton}"
 
     fig.update_layout(width=900, height=500, title={
             'text': title,
