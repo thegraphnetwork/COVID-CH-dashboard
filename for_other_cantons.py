@@ -304,22 +304,18 @@ def app():
     
     st.title('Number of cases and Hospitalizations')
     
-<<<<<<< HEAD
+
     fig_c, last_date, last_cases = plot_cases(canton)
-=======
-    fig_c, last_date = plot_cases_canton(canton)
->>>>>>> e2a08feae37072314dcab00e29988f7ef0c06701
+
     
     st.write(f'''
              The graphs below show the number of cases and hospitalizations in {canton}
              according to FOPH. The data was updated in: {str(last_date)[:10]}
              ''')
              
-<<<<<<< HEAD
+
     fig_h, last_hosp = plot_hosp(canton)
-=======
-    fig_h = plot_hosp_canton(canton)
->>>>>>> e2a08feae37072314dcab00e29988f7ef0c06701
+
     
     st.plotly_chart(fig_c, use_container_width = True)
     st.plotly_chart(fig_h, use_container_width = True)
