@@ -388,12 +388,13 @@ def download_button(object_to_download, download_filename, button_text, pickle_i
 
 def app(): 
     
-    st.title('Current Status in Geneva')
+    st.title('Switzerland COVID-19 Hospitalizatiokn forecasts')
     
     fig_c, last_date, last_cases = plot_cases()
     fig_h, last_hosp = plot_hosp()
     
     st.write(f'''
+            ## Current Status in Geneva
              On  **{last_date.date()}**, the FOPH (Federal Office of Public Health) reported {last_cases} new cases and {last_hosp} new hospitalizations.
 
             For forecasts of other cantons, see sidebar menu.
