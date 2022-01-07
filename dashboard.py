@@ -15,7 +15,7 @@ import clustering
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
-st.set_page_config(page_title='COVID19 Hospitalization Forecasts', 
+st.set_page_config(page_title='Switzerland COVID19 Hospitalization Forecasts', 
                     page_icon=":chart:", 
                     layout="wide", 
                     initial_sidebar_state="auto", 
