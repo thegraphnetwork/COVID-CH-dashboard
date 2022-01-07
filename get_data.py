@@ -19,6 +19,15 @@ import matplotlib.pyplot as plt
 engine_public = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 engine_private = create_engine("postgresql://epigraph:epigraph@localhost:5432/privatehub")
 
+def get_curve(curve):
+    '''
+    Function to get the cases and hosp data in the database
+    '''
+    df = pd.read_sql_table(f'foph_{curve}', engine_public, schema = 'switzerland', index_col = 'datum', columns=[ 'geoRegion', 'entries'])
+    df.index = pd.to_datetime(df.index)
+    
+    return df
+
 
 def build_lagged_features(dt, maxlag=2, dropna=True):
     '''

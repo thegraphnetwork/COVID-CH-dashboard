@@ -10,25 +10,41 @@ import numpy as np
 import streamlit as st
 import plotly.graph_objects as go
 from forecast import download_button
-from get_data import get_canton_data  
+from get_data import get_canton_data, get_curve  
 from sqlalchemy import create_engine
-from cachetools import cached
 engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 
+dict_cantons_names = {
+    'Uri (UR)': 'UR', 
+    'Vaud (VD)':'VD',
+    'Obwalden (OW)':'OW',
+    'Aargau (AG)':'AG', 
+    'Appenzell Innerrhoden (AI)' :'AI', 
+    'Valais (VS)':'VS' , 
+    #'FL':'' , 
+    'Sankt Gallen (SG)':'SG',
+    'Zug (ZG)':'ZG',
+    'Appenzell Ausserrhoden (AR)':'AR', 
+    'Zürich (ZH)':'ZH', 
+    'Bern (BE)':'BE', 
+    'Geneva (GE)':'GE', 
+    'Glarus (GL)':'GL', 
+    'Graubünden (GR)':'GR', 
+    'Basel Stadt (BS)':'BS', 
+    'Jura (JU)':'JU', 
+    'Schaffhausen (SH)':'SH', 
+    'Freiburg (FR)':'FR', 
+    'Basel Land (BL)':'BL',
+    'Schwyz (SZ)':'SZ', 
+    'Solothurn (SO)':'SO',
+    'Thurgau (TG)':'TG', 
+    'Ticino (TI)':'TI', 
+    'Luzern (LU)':'LU', 
+    'Neuchâtel (NE)':'NE', 
+    'Nidwalden (NW)':'NW', 
+    }
 
-
-# @st.cache(allow_output_mutation=True)
-@cached(cache={})
-def get_curve(curve):
-    '''
-    Function to get the cases and hosp data in the database
-    '''
-    df = pd.read_sql_table(f'foph_{curve}', engine, schema = 'switzerland', index_col = 'datum', columns=[ 'geoRegion', 'entries'])
-    df.index = pd.to_datetime(df.index)
-    
-    return df
-
-def plot_cases_canton(canton):
+def plot_cases_canton(full_name_canton, canton):
     
     ''''
     Function to plot the new cases according to FOPH in any canton
@@ -42,7 +58,7 @@ def plot_cases_canton(canton):
     
     df = get_curve('cases')
     
-    df = df[df.geoRegion == canton]
+    df = df.loc[df.geoRegion == canton]
     df.sort_index(inplace = True)
     df = df['2021-08-01':]
     
@@ -51,7 +67,7 @@ def plot_cases_canton(canton):
     
     fig = go.Figure()
         
-    title = f"{canton}"
+    title = f"{full_name_canton}"
     
     fig.update_layout(width=900, height=500, title={
                 'text': title,
@@ -74,9 +90,9 @@ def plot_cases_canton(canton):
     fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
         showline=True, linewidth=1, linecolor='black', mirror = True)
     
-    return fig, df.index[-1], df.entries[-1]
+    return fig, df.index[-1] 
 
-def plot_hosp_canton(canton):
+def plot_hosp_canton(full_name_canton, canton):
     '''
     Function to plot the number of new hospitalizations for any canton
     
@@ -96,7 +112,7 @@ def plot_hosp_canton(canton):
     
     fig = go.Figure()
         
-    title = f"{canton}"
+    title = f"{full_name_canton}"
     
     fig.update_layout(width=900, height=500, title={
                 'text': title,
@@ -119,9 +135,9 @@ def plot_hosp_canton(canton):
     fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
         showline=True, linewidth=1, linecolor='black', mirror = True)
     
-    return fig, df.entries[-1]
+    return fig
 
-def plot_predictions_canton(table_name, curve, canton, title = None):
+def plot_predictions_canton(table_name, curve, canton, full_name_canton, title = None):
     ''''
     Function to plot the predictions
     
@@ -159,7 +175,7 @@ def plot_predictions_canton(table_name, curve, canton, title = None):
     
     if title == None: 
         
-        title = f"{canton}"
+        title = f"{full_name_canton}"
 
     fig.update_layout(width=900, height=500, title={
             'text': title,
@@ -203,7 +219,7 @@ def plot_predictions_canton(table_name, curve, canton, title = None):
 
     return fig 
 
-def plot_forecast_canton(table_name,canton, curve, title= None):
+def plot_forecast_canton(table_name,canton, curve, full_name_canton, title= None):
     ''''
     Function to plot the forecast 
     
@@ -241,7 +257,7 @@ def plot_forecast_canton(table_name,canton, curve, title= None):
     
     if title == None: 
         
-        title = f"{canton}"
+        title = f"{full_name_canton}"
 
     fig.update_layout(width=900, height=500, title={
             'text': title,
@@ -294,28 +310,55 @@ def plot_forecast_canton(table_name,canton, curve, title= None):
 
 
 def app():
-    cantons = [ 'UR', 'VD', 'OW', 'AG', 'AI', 'VS', 'FL', 'SG', 'ZG',
-           'AR', 'ZH', 'BE', 'GE', 'GL', 'GR', 'BS', 'JU', 'SH', 'FR', 'BL',
-           'SZ', 'SO', 'TG', 'TI', 'LU', 'NE', 'NW']
+    dict_cantons_names = {
+        'Uri (UR)': 'UR', 
+        'Vaud (VD)':'VD',
+        'Obwalden (OW)':'OW',
+        'Aargau (AG)':'AG', 
+        'Appenzell Innerrhoden (AI)' :'AI', 
+        'Valais (VS)':'VS' , 
+        #'FL':'' , 
+        'Sankt Gallen (SG)':'SG',
+        'Zug (ZG)':'ZG',
+        'Appenzell Ausserrhoden (AR)':'AR', 
+        'Zürich (ZH)':'ZH', 
+        'Bern (BE)':'BE', 
+        'Geneva (GE)':'GE', 
+        'Glarus (GL)':'GL', 
+        'Graubünden (GR)':'GR', 
+        'Basel Stadt (BS)':'BS', 
+        'Jura (JU)':'JU', 
+        'Schaffhausen (SH)':'SH', 
+        'Freiburg (FR)':'FR', 
+        'Basel Land (BL)':'BL',
+        'Schwyz (SZ)':'SZ', 
+        'Solothurn (SO)':'SO',
+        'Thurgau (TG)':'TG', 
+        'Ticino (TI)':'TI', 
+        'Luzern (LU)':'LU', 
+        'Neuchâtel (NE)':'NE', 
+        'Nidwalden (NW)':'NW', 
+        }
+    
+    list_cantons =  list(dict_cantons_names.keys())
+    list_cantons.sort()
 
-    canton = st.selectbox("On which canton you want to forecast the hospitalizations?",
-                cantons 
+    full_name_canton = st.selectbox("On which canton you want to forecast the hospitalizations?",
+               list_cantons
                 )
+    
+    canton = dict_cantons_names[full_name_canton]
     
     st.title('Number of cases and Hospitalizations')
     
-
-    fig_c, last_date, last_cases = plot_cases_canton(canton)
-
+    fig_c, last_date = plot_cases_canton(full_name_canton, canton)
     
     st.write(f'''
-             The graphs below show the number of cases and hospitalizations in {canton}
+             The graphs below show the number of cases and hospitalizations in Geneva
              according to FOPH. The data was updated in: {str(last_date)[:10]}
              ''')
              
-
-    fig_h, last_hosp = plot_hosp_canton(canton)
-
+    fig_h = plot_hosp_canton(full_name_canton, canton)
     
     st.plotly_chart(fig_c, use_container_width = True)
     st.plotly_chart(fig_h, use_container_width = True)
@@ -326,7 +369,7 @@ def app():
              the data range used for training) and out of  sample (part of the series not used during model training).  
 
              ''')
-    fig_val  = plot_predictions_canton('ml_val_hosp_all_cantons', curve = 'hosp', canton = canton)
+    fig_val  = plot_predictions_canton('ml_val_hosp_all_cantons', curve = 'hosp', canton = canton, full_name_canton=full_name_canton)
     
     st.plotly_chart(fig_val, use_container_width = True)
     
@@ -335,7 +378,7 @@ def app():
 
              ''')
              
-    fig_val_icu  = plot_predictions_canton('ml_val_icu_all_cantons', curve = 'ICU_patients', canton = canton)
+    fig_val_icu  = plot_predictions_canton('ml_val_icu_all_cantons', curve = 'ICU_patients', canton = canton, full_name_canton=full_name_canton)
     
     st.plotly_chart(fig_val_icu, use_container_width = True)
     
@@ -350,14 +393,14 @@ def app():
 
              ''')
              
-    fig_for, df_hosp = plot_forecast_canton('ml_for_hosp_all_cantons', canton= canton, curve = 'hosp')
+    fig_for, df_hosp = plot_forecast_canton('ml_for_hosp_all_cantons', canton= canton, curve = 'hosp',full_name_canton=full_name_canton)
     st.plotly_chart(fig_for, use_container_width = True)
     filename = 'forecast_hosp.csv'
     download_button_str = download_button(df_hosp, filename, 'Download data', pickle_it=False)
 
     st.markdown(download_button_str, unsafe_allow_html=True)
     
-    fig_for_icu, df_icu = plot_forecast_canton('ml_for_icu_all_cantons', canton= canton, curve = 'ICU_patients')
+    fig_for_icu, df_icu = plot_forecast_canton('ml_for_icu_all_cantons', canton= canton, curve = 'ICU_patients',full_name_canton=full_name_canton)
     st.plotly_chart(fig_for_icu, use_container_width = True)
     filename = 'forecast_icu.csv'
     download_button_str = download_button(df_icu, filename, 'Download data', pickle_it=False)
