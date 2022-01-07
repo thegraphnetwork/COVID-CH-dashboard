@@ -148,7 +148,7 @@ def plot_cases():
     fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
         showline=True, linewidth=1, linecolor='black', mirror = True)
     
-    return fig, df.index[-1], df.entries[-1]
+    return fig, df.index[-1], df.entries[-2:]
 
 def plot_hosp():
     ''''
@@ -194,7 +194,7 @@ def plot_hosp():
     fig.update_yaxes( showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline = False,
         showline=True, linewidth=1, linecolor='black', mirror = True)
     
-    return fig, df.entries[-1]
+    return fig, df.entries[-2:]
     
     
 
@@ -393,10 +393,15 @@ def app():
     fig_c, last_date, last_cases = plot_cases()
     fig_h, last_hosp = plot_hosp()
     
-    st.write(f'''
+    st.markdown(f'''
             ## Current Status in Geneva
-             On  **{last_date.date()}**, the FOPH (Federal Office of Public Health) reported {last_cases} new cases and {last_hosp} new hospitalizations.
+             On  **{last_date.date()}**, the FOPH (Federal Office of Public Health) reported:
+            ''')
+    st.metric("Daily new cases", value=last_cases[-1], delta=f"{last_cases.diff()[-1]} cases", delta_color="inverse")
+    print(last_cases,last_cases.diff())
+    st.metric("Daily new Hospitalizations", value=last_hosp[-1], delta=f"{last_hosp.diff()[-1]} Hospitalizations", delta_color="inverse")
 
+    st.write('''
             For forecasts of other cantons, see sidebar menu.
              ''')
              
@@ -428,21 +433,7 @@ def app():
              next 14 days. For each of these 14 days, one model is trained. 
              ''')
              
-    st.write('''
-            ## Model Validation
-             In the Figure below, the model's predictions are plotted against data, both in sample (for 
-             the data range used for training) and out of  sample (part of the series not used during model training).  
-
-             ''')
-    fig  = plot_predictions('ml_validation_hosp_up', curve = 'hosp') 
-    st.plotly_chart(fig, use_container_width = True)
     
-    st.write('''
-             Below, we have the same as above, but for the ICU occupancy.  
-
-             ''')
-    fig  = plot_predictions('ml_validation_icu', curve = 'ICU_patients') 
-    st.plotly_chart(fig, use_container_width = True)
     
     
     st.write('''
@@ -457,7 +448,7 @@ def app():
 
              ''')
              
-    select_data = st.checkbox('Updated data', value=True)
+    select_data = st.checkbox('Updated data', value=False)
 
     if select_data:
          fig_for, df_hosp = plot_forecast('ml_forecast_hosp_up', curve = 'hosp')
@@ -484,7 +475,22 @@ def app():
 
     st.markdown(download_button_str, unsafe_allow_html=True)
 
+
+
+    st.write('''
+            ## Model Validation
+             In the Figure below, the model's predictions are plotted against data, both in sample (for 
+             the data range used for training) and out of  sample (part of the series not used during model training).  
+
+             ''')
+    fig  = plot_predictions('ml_validation_hosp_up', curve = 'hosp') 
+    st.plotly_chart(fig, use_container_width = True)
     
-    
+    st.write('''
+             Below, we have the same as above, but for the ICU occupancy.  
+
+             ''')
+    fig  = plot_predictions('ml_validation_icu', curve = 'ICU_patients') 
+    st.plotly_chart(fig, use_container_width = True)
     
     
