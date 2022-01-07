@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 from forecast import download_button
 from get_data import get_canton_data, get_curve  
 from sqlalchemy import create_engine
+from forecast import scatter_plot_cases_hosp
 engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 
 dict_cantons_names = {
@@ -354,7 +355,7 @@ def app():
     fig_c, last_date = plot_cases_canton(full_name_canton, canton)
     
     st.write(f'''
-             The graphs below show the number of cases and hospitalizations in Geneva
+             The graphs below show the number of cases and hospitalizations in {full_name_canton}
              according to FOPH. The data was updated in: {str(last_date)[:10]}
              ''')
              
@@ -362,6 +363,15 @@ def app():
     
     st.plotly_chart(fig_c, use_container_width = True)
     st.plotly_chart(fig_h, use_container_width = True)
+    
+    st.write('''
+             #### Relation between cases and hospitalizations in Switzerland:
+        ''')
+        
+    scatter_cases_hosp_all = scatter_plot_cases_hosp('All')
+    
+    st.image(scatter_cases_hosp_all)
+    
 
     st.write('''
             ## Model Validation

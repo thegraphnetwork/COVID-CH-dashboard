@@ -491,20 +491,12 @@ def app():
     
     
     st.write('''
-             ##### Relation between cases and hospitalizations in Geneva:
+             #### Relation between cases and hospitalizations in Geneva:
         ''')
         
     scatter_cases_hosp_GE = scatter_plot_cases_hosp('GE')
     
     st.image(scatter_cases_hosp_GE)
-    
-    st.write('''
-             ##### Relation between cases and hospitalizations in Switzerland:
-        ''')
-        
-    scatter_cases_hosp_all = scatter_plot_cases_hosp('All')
-    
-    st.image(scatter_cases_hosp_all)
     
     st.title('Forecast of Daily Hospitalizations')
     
