@@ -21,7 +21,6 @@ from get_data import get_canton_data, get_updated_data
 from sqlalchemy import create_engine
 engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 
-
 def plot_predictions(table_name, curve, title = None):
     ''''
     Function to plot the predictions

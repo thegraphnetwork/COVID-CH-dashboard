@@ -48,9 +48,7 @@ def build_lagged_features(dt, maxlag=2, dropna=True):
         return res.dropna()
     else:
         return res
-# @st.cache
-
-
+    
 def get_lag(x, y, maxlags=5, smooth=True):
     if smooth:
         x = pd.Series(x).rolling(7).mean().dropna().values
@@ -195,12 +193,23 @@ def get_cluster_data(curve, georegion):
     for i in georegion:
 
         # print(i)
-
-        if curve == 'hospcapacity':
+        if len(df.loc[df.index.duplicated(keep = False)]) != 0:
             df_aux = df.loc[df.geoRegion == i].resample('D').mean()
-            df_end['ICU_patients_'+i] = df_aux.ICU_Covid19Patients
+            
+            if curve == 'hospcapacity':
+                df_end['ICU_patients_'+i] = df_aux.ICU_Covid19Patients
+            
+            else: 
+                df_end[curve+'_'+i] = df_aux.entries
+            
+            
         else:
-            df_end[curve+'_'+i] = df.loc[df.geoRegion == i].entries
+            
+            if curve == 'hospcapacity':
+                df_end['ICU_patients_'+i] = df_aux.ICU_Covid19Patients
+                
+            else:
+                df_end[curve+'_'+i] = df.loc[df.geoRegion == i].entries
 
     df_end = df_end.resample('D').mean()
 
