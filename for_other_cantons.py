@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 from forecast import download_button
 from get_data import get_canton_data, get_curve  
 from sqlalchemy import create_engine
-from forecast import scatter_plot_cases_hosp
+from plots import scatter_plot_cases_hosp
 engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 
 dict_cantons_names = {
