@@ -10,9 +10,9 @@ import numpy as np
 import streamlit as st
 import plotly.graph_objects as go
 from forecast import download_button
-from get_data import get_canton_data, get_curve  
+from get_data import get_curve  
 from sqlalchemy import create_engine
-from plots import scatter_plot_cases_hosp
+from plots import scatter_plot_cases_hosp_all
 engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 
 dict_cantons_names = {
@@ -57,9 +57,8 @@ def plot_cases_canton(full_name_canton, canton):
     
     '''
     
-    df = get_curve('cases')
+    df = get_curve('cases', canton)
     
-    df = df.loc[df.geoRegion == canton]
     df.sort_index(inplace = True)
     df = df['2021-08-01':]
     
@@ -103,9 +102,8 @@ def plot_hosp_canton(full_name_canton, canton):
     
     '''
     
-    df = get_curve('hosp')
+    df = get_curve('hosp', canton)
     
-    df = df.loc[df.geoRegion ==canton]
     df.sort_index(inplace = True)
     df = df['2021-08-01':]
     
@@ -154,9 +152,10 @@ def plot_predictions_canton(table_name, curve, canton, full_name_canton, title =
     target_curve_name = curve
     
     
-    df_val = pd.read_sql_table(table_name, engine, schema = 'switzerland', index_col = 'date')
+    df_val = pd.read_sql(f"select * from switzerland.{table_name} where canton='{canton}';", engine)
     
-    df_val = df_val.loc[df_val.canton == canton]
+    df_val.index = pd.to_datetime(df_val.date)
+
     
     target = df_val['target']
     train_size = df_val['train_size'].values[0]
@@ -237,13 +236,13 @@ def plot_forecast_canton(table_name,canton, curve, full_name_canton, title= None
     '''
     target_curve_name = curve
 
+
+    df_for = pd.read_sql(f"select * from switzerland.{table_name} where canton='{canton}';", engine)
     
-    df_for = pd.read_sql_table(table_name, engine, schema = 'switzerland', index_col = 'date')
-    
-    df_for = df_for.loc[df_for.canton == canton]
+    df_for.index = pd.to_datetime(df_for.date)
     
     curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity'}
-    ydata = get_canton_data(curves[curve], [canton])
+    ydata = get_curve(curves[curve], canton)
     ydata = ydata.resample('D').mean() 
     ydata =  ydata.rolling(7).mean().dropna()
     
@@ -373,7 +372,7 @@ def app():
              If we look at hospitalization *vs* cases, we can hint at the change in case severity over time.
         ''')
         
-    scatter_cases_hosp_all = scatter_plot_cases_hosp('All')
+    scatter_cases_hosp_all = scatter_plot_cases_hosp_all()
     
     st.image(scatter_cases_hosp_all)
     
