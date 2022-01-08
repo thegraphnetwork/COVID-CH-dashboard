@@ -377,7 +377,6 @@ def app():
     
     st.image(scatter_cases_hosp_all)
     
-
     
     
     
