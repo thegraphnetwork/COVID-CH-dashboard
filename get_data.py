@@ -19,38 +19,15 @@ import matplotlib.pyplot as plt
 engine_public = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 engine_private = create_engine("postgresql://epigraph:epigraph@localhost:5432/privatehub")
 
-
-def build_lagged_features(dt, maxlag=2, dropna=True):
+def get_curve(curve):
     '''
-    Builds a new DataFrame to facilitate regressing over all possible lagged features
-    :param dt: Dataframe containing features
-    :param maxlag: maximum lags to compute
-    :param dropna: if true the initial rows containing NANs due to lagging will be dropped
-    :return: Dataframe
+    Function to get the cases and hosp data in the database
     '''
-    if type(dt) is pd.DataFrame:
-        new_dict = {}
-        for col_name in dt:
-            new_dict[col_name] = dt[col_name]
-            # create lagged Series
-            for l in range(1, maxlag + 1):
-                new_dict['%s_lag%d' % (col_name, l)] = dt[col_name].shift(l)
-        res = pd.DataFrame(new_dict, index=dt.index)
-
-    elif type(dt) is pd.Series:
-        the_range = range(maxlag + 1)
-        res = pd.concat([dt.shift(i) for i in the_range], axis=1)
-        res.columns = ['lag_%d' % i for i in the_range]
-    else:
-        print('Only works for DataFrame or Series')
-        return None
-    if dropna:
-        return res.dropna()
-    else:
-        return res
-# @st.cache
-
-
+    df = pd.read_sql_table(f'foph_{curve}', engine_public, schema = 'switzerland', index_col = 'datum', columns=[ 'geoRegion', 'entries'])
+    df.index = pd.to_datetime(df.index)
+    
+    return df
+    
 def get_lag(x, y, maxlags=5, smooth=True):
     if smooth:
         x = pd.Series(x).rolling(7).mean().dropna().values
@@ -169,98 +146,6 @@ def get_updated_data(smooth):
     df_hosp.rename(columns= {'Patient_id':'hosp_GE'}, inplace = True)
     return df_hosp['2021-09-01':]
     
-
-# @st.cache
-
-
-def get_cluster_data(curve, georegion):
-    '''
-    This function provide a dataframe with the curve selected in the param curve for each region selected in the 
-    param georegion
-
-    param curve: string. The following options are accepted: ['cases', 'death',
-                                                              'hosp', 'hospCapacity', 
-                                                              're', 'test', 'testPcrAntigen', 'virusVariantsWgs']
-    param georegion: array with all the geoRegions of interest.
-
-    return dataframe
-    '''
-
-    df = get_canton_data(curve, georegion)
-    # print(df)
-    # dataframe where will the curve for each region
-
-    df_end = pd.DataFrame()
-
-    for i in georegion:
-
-        # print(i)
-
-        if curve == 'hospcapacity':
-            df_aux = df.loc[df.geoRegion == i].resample('D').mean()
-            df_end['ICU_patients_'+i] = df_aux.ICU_Covid19Patients
-        else:
-            df_end[curve+'_'+i] = df.loc[df.geoRegion == i].entries
-
-    df_end = df_end.resample('D').mean()
-
-    return df_end
-
-
-# @st.cache
-def get_combined_data(data_types, georegion, vaccine=True, smooth=True):
-    '''
-    This function provide a dataframe with the all the curves selected in the param data_types for each region selected in the 
-    param georegion
-
-    param data_types: array. The following options are accepted: ['cases', 'casesVaccPersons', 'covidCertificates', 'death',
-                                                             'deathVaccPersons', 'hosp', 'hospCapacity', 'hospVaccPersons',
-                                                             'intCases', 're', 'test', 'testPcrAntigen', 'virusVariantsWgs']
-    param georegion: array with all the geoRegions of interest.
-
-    return dataframe
-    '''
-
-    for i in np.arange(0, len(data_types)):
-
-        if i == 0:
-
-            df = get_cluster_data(data_types[i], georegion)
-
-        else:
-
-            df = df.merge(get_cluster_data(
-                data_types[i], georegion), left_index=True, right_index=True)
-
-    if vaccine == True:
-        ## add the vaccine data for Switzerland made available by Our world in Data 
-        vac = pd.read_csv(
-            'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv')
-
-        # selecting the switzerland data 
-        vac = vac.loc[vac.iso_code == 'CHE']
-        vac.index = pd.to_datetime(vac.date)
-
-        # selecting only the column with vaccinations per hundred 
-        vac = vac[['total_vaccinations_per_hundred']]
-
-        vac = vac.fillna(0)
-
-        if vac.total_vaccinations_per_hundred[-1] == 0:
-            vac.total_vaccinations_per_hundred[-1] = vac.total_vaccinations_per_hundred[-2]
-
-        df['vac_all'] = vac.total_vaccinations_per_hundred
-
-    # filling the NaN values by zero
-    df = df.fillna(0)
-
-    if smooth == True:
-        df = df.rolling(window=7).mean()
-
-        df = df.dropna()
-
-    return df
-
 
 #@st.cache
 def get_canton_data(curve, canton, ini_date=None):

@@ -8,8 +8,11 @@ Created on Mon Dec 20 19:21:46 2021
 
 # importando os pacotes necessários
 import pandas as pd 
+import matplotlib.pyplot as plt 
+import seaborn as sns
 import numpy as np 
 import io
+from io import BytesIO
 import base64
 import json
 import pickle
@@ -17,10 +20,90 @@ import uuid
 import re
 import plotly.graph_objects as go 
 import streamlit as st 
-from get_data import get_canton_data, get_updated_data
+from get_data import get_canton_data, get_updated_data, get_curve
 from sqlalchemy import create_engine
 engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 
+
+
+
+
+def scatter_plot_cases_hosp(region):
+    
+    if region == 'All':
+        
+        cases = get_curve('cases')
+        
+        cases = cases.resample('D').sum()
+        
+        hosp = get_curve('hosp')
+        
+        hosp = hosp.resample('D').sum()
+        
+        fig, ax = plt.subplots()
+        
+        sns.regplot(x = cases[:'2020-12-31'].entries,
+                    y=hosp[:'2020-12-31'].entries,
+                    label = '2020', color ='tab:gray', ax =ax )
+        
+        sns.regplot(x = cases['2021-01-01':'2021-03-31'].entries,
+                    y=hosp['2021-01-01':'2021-03-31'].entries,
+                    label = '2021-Q1', color ='tab:cyan', ax =ax )
+        
+        sns.regplot(x = cases['2021-04-01':'2021-06-30'].entries,
+                    y=hosp['2021-04-01':'2021-06-30'].entries,
+                    label = '2021-Q2', color ='tab:orange', ax =ax )
+        
+        sns.regplot(x = cases['2021-07-01':'2021-09-30'].entries,
+                    y=hosp['2021-07-01':'2021-09-30'].entries,
+                    label = '2021-Q3', color ='tab:red', ax =ax )
+        
+        
+        sns.regplot(x = cases['2021-10-01':'2021-12-31'].entries,
+                    y=hosp['2021-10-01':'2021-12-31'].entries,
+                    label = '2021-Q4', color ='tab:blue', ax =ax )
+        
+        sns.regplot(x = cases['2022-01-01':'2022-03-31'].entries,
+                    y=hosp['2022-01-01':'2022-03-31'].entries,
+                    label = '2022-Q1', color ='tab:green', ax =ax )
+        
+        ax.set_title('Cases vs hospitalizations in Switzerland')
+        
+        ax.set_xlabel('Cases')
+        ax.set_ylabel('Hospitalizations')
+        ax.legend()
+        ax.grid()
+        
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+        
+    
+    if region == 'GE':
+        fig, ax = plt.subplots()
+        
+        cases = get_canton_data('cases', ['GE'])
+        
+        hosp = get_canton_data('hosp', ['GE'])
+        
+        sns.regplot(x = cases['2021-10-01':'2021-12-31'].entries,
+                    y=hosp['2021-10-01':'2021-12-31'].entries,
+                    label = '2021-Q4', color ='tab:blue', ax =ax )
+        
+        sns.regplot(x = cases['2022-01-01':'2022-03-31'].entries,
+                    y=hosp['2022-01-01':'2022-03-31'].entries,
+                    label = '2022-Q1', color ='tab:green', ax =ax )
+        
+        ax.set_title('Cases vs hospitalizations in Geneva')
+        
+        ax.set_xlabel('Cases')
+        ax.set_ylabel('Hospitalizations')
+        
+        ax.grid()
+    
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+    
+    return buf
 
 def plot_predictions(table_name, curve, title = None):
     ''''
@@ -405,6 +488,15 @@ def app():
     
     st.plotly_chart(fig_c, use_container_width = True)
     st.plotly_chart(fig_h, use_container_width = True)
+    
+    
+    st.write('''
+             #### Relation between cases and hospitalizations in Geneva:
+        ''')
+        
+    scatter_cases_hosp_GE = scatter_plot_cases_hosp('GE')
+    
+    st.image(scatter_cases_hosp_GE)
     
     st.title('Forecast of Daily Hospitalizations')
     
