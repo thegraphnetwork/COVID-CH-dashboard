@@ -122,12 +122,8 @@ def plot_cases():
 
     '''
 
-    df = pd.read_sql_table('foph_cases', engine, schema='switzerland',
-                           index_col='datum', columns=['geoRegion', 'entries'])
-    df.index = pd.to_datetime(df.index)
-
-    df = df.loc[df.geoRegion == 'GE']
-    df.sort_index(inplace=True)
+    df = get_curve('cases', 'GE')
+    
     df = df['2021-08-01':]
 
     # computing the rolling average
@@ -172,12 +168,8 @@ def plot_hosp():
 
     '''
 
-    df = pd.read_sql_table('foph_hosp', engine, schema='switzerland',
-                           index_col='datum', columns=['geoRegion', 'entries'])
-    df.index = pd.to_datetime(df.index)
-
-    df = df.loc[df.geoRegion == 'GE']
-    df.sort_index(inplace=True)
+    df = get_curve('hosp', 'GE')
+    
     df = df['2021-08-01':]
 
     # computing the rolling average

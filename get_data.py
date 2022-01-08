@@ -19,12 +19,38 @@ import matplotlib.pyplot as plt
 engine_public = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 engine_private = create_engine("postgresql://epigraph:epigraph@localhost:5432/privatehub")
 
-def get_curve(curve):
+
+def get_curve_all(curve):
+    
+    '''
+    Function to return the cases or hosp for all the switzerland
+    '''
+    
+    df2 = pd.read_sql(f"select datum, sum(entries) from switzerland.foph_{curve} group by datum;", engine_public)
+    df2.index = pd.to_datetime(df2.datum)
+    df2 = df2.rename(columns={'sum': 'entries'})
+    df2.sort_index(inplace = True)
+    df2
+    
+    return df2
+
+def get_curve(curve, canton):
     '''
     Function to get the cases and hosp data in the database
     '''
-    df = pd.read_sql_table(f'foph_{curve}', engine_public, schema = 'switzerland', index_col = 'datum', columns=[ 'geoRegion', 'entries'])
-    df.index = pd.to_datetime(df.index)
+    
+    dict_columns = {'cases':'datum, entries, \"geoRegion\"',
+                    'hosp':'datum, entries, \"geoRegion\"',
+                    'hospcapacity': 'date, \"ICU_Covid19Patients\", \"geoRegion\"'}
+    
+    dict_dates = {'cases': 'datum', 'hosp': 'datum', 
+                  'hospcapacity': 'date'}
+    
+    df = pd.read_sql(f"select {dict_columns[curve]} from switzerland.foph_{curve} where \"geoRegion\"='{canton}';", engine_public)
+    
+    df.index = pd.to_datetime(df[dict_dates[curve]])
+    
+    df = df.sort_index()
     
     return df
     
