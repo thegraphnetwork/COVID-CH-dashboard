@@ -76,6 +76,7 @@ def plot_cases_canton(full_name_canton, canton):
                 'x':0.42,
                 'xanchor': 'center',
                 'yanchor': 'top'},
+                legend={'orientation': 'h', 'valign':'top'},
         xaxis_title='Report Date',
         yaxis_title='New cases',
       template = 'plotly_white')
@@ -121,6 +122,7 @@ def plot_hosp_canton(full_name_canton, canton):
                 'x':0.42,
                 'xanchor': 'center',
                 'yanchor': 'top'},
+                legend={'orientation': 'h', 'yanchor':'bottom'},
         xaxis_title='Report Date',
         yaxis_title='New hospitalizations',
       template = 'plotly_white')
@@ -344,7 +346,7 @@ def app():
     list_cantons =  list(dict_cantons_names.keys())
     list_cantons.sort()
 
-    full_name_canton = st.selectbox("On which canton you want to forecast the hospitalizations?",
+    full_name_canton = st.sidebar.selectbox("For which canton you want to forecast?",
                list_cantons
                 )
     
@@ -360,12 +362,15 @@ def app():
              ''')
              
     fig_h = plot_hosp_canton(full_name_canton, canton)
-    
-    st.plotly_chart(fig_c, use_container_width = True)
-    st.plotly_chart(fig_h, use_container_width = True)
+    c1,c2 = st.columns(2)
+    with c1:
+        st.plotly_chart(fig_c, use_container_width = True)
+    with c2:
+        st.plotly_chart(fig_h, use_container_width = True)
     
     st.write('''
              #### Relation between cases and hospitalizations in Switzerland:
+             If we look at hospitalization *vs* cases, we can hint at the change in case severity over time.
         ''')
         
     scatter_cases_hosp_all = scatter_plot_cases_hosp('All')
@@ -373,24 +378,7 @@ def app():
     st.image(scatter_cases_hosp_all)
     
 
-    st.write('''
-            ## Model Validation
-             In the Figure below, the model's predictions are plotted against data, both in sample (for 
-             the data range used for training) and out of  sample (part of the series not used during model training).  
-
-             ''')
-    fig_val  = plot_predictions_canton('ml_val_hosp_all_cantons', curve = 'hosp', canton = canton, full_name_canton=full_name_canton)
     
-    st.plotly_chart(fig_val, use_container_width = True)
-    
-    st.write('''
-             Below, we have the same as above, but for the ICU occupancy.  
-
-             ''')
-             
-    fig_val_icu  = plot_predictions_canton('ml_val_icu_all_cantons', curve = 'ICU_patients', canton = canton, full_name_canton=full_name_canton)
-    
-    st.plotly_chart(fig_val_icu, use_container_width = True)
     
     
     st.write('''
@@ -418,5 +406,22 @@ def app():
     st.markdown(download_button_str, unsafe_allow_html=True)
     
     
+    st.write('''
+            ## Model Validation
+             In the Figure below, the model's predictions are plotted against data, both in sample (for 
+             the data range used for training) and out of  sample (part of the series not used during model training).  
+
+             ''')
+    fig_val  = plot_predictions_canton('ml_val_hosp_all_cantons', curve = 'hosp', canton = canton, full_name_canton=full_name_canton)
     
+    st.plotly_chart(fig_val, use_container_width = True)
+    
+    st.write('''
+             Below, we have the same as above, but for the ICU occupancy.  
+
+             ''')
+             
+    fig_val_icu  = plot_predictions_canton('ml_val_icu_all_cantons', curve = 'ICU_patients', canton = canton, full_name_canton=full_name_canton)
+    
+    st.plotly_chart(fig_val_icu, use_container_width = True)
     
