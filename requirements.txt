@@ -12,3 +12,5 @@ openpyxl
 matplotlib
 geopandas
 cachetools
+seaborn
+statsmodels
