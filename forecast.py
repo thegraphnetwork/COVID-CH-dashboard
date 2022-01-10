@@ -158,6 +158,9 @@ def plot_cases():
 
     return fig, df.index[-1], df.entries[-2:]
 
+def get_hospCapacity():
+    df = get_curve('hospcapacity', 'GE')
+    return df.Total_Covid19Patients[-2:],df.TotalPercent_Covid19Patients[-2:]
 
 def plot_hosp():
     ''''
@@ -403,6 +406,7 @@ def app():
 
     fig_c, last_date, last_cases = plot_cases()
     fig_h, last_hosp = plot_hosp()
+    total_hc, perc_hc = get_hospCapacity()
 
     st.markdown(f'''
             ## Current Status in Geneva
@@ -413,11 +417,14 @@ def app():
     with c1:
         st.metric("Daily new cases", value=last_cases[-1],
                   delta=f"{last_cases.diff()[-1]} cases", delta_color="inverse")
+        st.metric("Total COVID-19 Hospitalizations", value=total_hc[-1],
+        delta=f"{total_hc.diff()[-1]} cases", delta_color='inverse')
         st.plotly_chart(fig_c, use_container_width=True)
     # print(last_cases,last_cases.diff())
     with c2:
         st.metric("Daily new Hospitalizations", value=last_hosp[-1],
                   delta=f"{last_hosp.diff()[-1]} Hospitalizations", delta_color="inverse")
+        st.metric("Percent of total Hospitalizations", value=perc_hc[-1], delta_color="inverse")
         st.plotly_chart(fig_h, use_container_width=True)
 
     st.write('''

@@ -93,6 +93,14 @@ def plot_cases_canton(full_name_canton, canton):
     
     return fig, df.index[-1] 
 
+def get_hospCapacity(canton):
+    '''
+    Returns Hospital capacity data for the specified `canton`
+    :param canton: Two letter symbol for the canton 
+    '''
+    df = get_curve('hospcapacity', )
+    return df.Total_Covid19Patients[-2:],df.TotalPercent_Covid19Patients[-2:]
+
 def plot_hosp_canton(full_name_canton, canton):
     '''
     Function to plot the number of new hospitalizations for any canton
