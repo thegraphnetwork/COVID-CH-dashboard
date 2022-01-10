@@ -423,8 +423,10 @@ def app():
     # print(last_cases,last_cases.diff())
     with c2:
         st.metric("Daily new Hospitalizations", value=last_hosp[-1],
-                  delta=f"{last_hosp.diff()[-1]} Hospitalizations", delta_color="inverse")
-        st.metric("Percent of total Hospitalizations", value=perc_hc[-1], delta_color="inverse")
+                  delta=f"{last_hosp.diff()[-1]:.1f} Hospitalizations", delta_color="inverse")
+        st.metric("Percent of total Hospitalizations", value=perc_hc[-1], 
+        delta=f"{perc_hc.diff()[-1]:.2f} %",
+        delta_color="inverse")
         st.plotly_chart(fig_h, use_container_width=True)
 
     st.write('''
