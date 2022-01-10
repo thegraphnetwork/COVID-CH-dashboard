@@ -27,8 +27,8 @@ st.set_page_config(page_title='Switzerland COVID19 Hospitalization Forecasts',
 st.sidebar.image('tgn.png')
 
 
-PAGES = {"Home": forecast, "Cluster analysis":clustering, 
-         'Forecast for other cantons': for_other_cantons,
+PAGES = {"Geneva": forecast, "Cluster analysis":clustering, 
+         'Other cantons': for_other_cantons,
         # "Bayesian Inference": bayesian_inference, 
         #  "Rt estimation": SIR_forecast, 
          "credits": credits}

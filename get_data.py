@@ -41,7 +41,7 @@ def get_curve(curve, canton):
     
     dict_columns = {'cases':'datum, entries, \"geoRegion\"',
                     'hosp':'datum, entries, \"geoRegion\"',
-                    'hospcapacity': 'date, \"ICU_Covid19Patients\", \"geoRegion\"'}
+                    'hospcapacity': 'date, \"ICU_Covid19Patients\", \"geoRegion\",\"Total_Covid19Patients\",\"TotalPercent_Covid19Patients\"'}
     
     dict_dates = {'cases': 'datum', 'hosp': 'datum', 
                   'hospcapacity': 'date'}
