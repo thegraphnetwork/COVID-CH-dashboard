@@ -171,6 +171,7 @@ def plot_predictions_canton(table_name, curve, canton, full_name_canton, title =
     point_date = np.where(target.index == '2021-01-01')
 
     fig = go.Figure()
+<<<<<<< Updated upstream
     
     # Dict with names for the curves 
     names = {'hosp': 'Hospitalizations', 'ICU_patients': 'ICU patients'}
@@ -188,6 +189,25 @@ def plot_predictions_canton(table_name, curve, canton, full_name_canton, title =
     xaxis_title='Date',
     yaxis_title=f'New {names[target_curve_name]}',
     template = 'plotly_white')
+=======
+
+    # Dict with names for the curves
+    names = {'hosp': 'New Hospitalizations', 'ICU_patients': 'Total ICU patients'}
+
+    if title == None:
+
+        title = f"{full_name_canton}"
+
+    fig.update_layout(width=900, height=500, title={
+        'text': title,
+        'y': 0.87,
+        'x': 0.42,
+        'xanchor': 'center',
+        'yanchor': 'top'},
+        xaxis_title='Date',
+        yaxis_title=f'{names[target_curve_name]}',
+        template='plotly_white')
+>>>>>>> Stashed changes
 
     # adding the traces
 
@@ -254,6 +274,7 @@ def plot_forecast_canton(table_name,canton, curve, full_name_canton, title= None
     
     fig = go.Figure()
 
+<<<<<<< Updated upstream
     # Dict with names for the curves 
     names = {'hosp': 'Forecast Hospitalizations', 'ICU_patients': 'Forecast ICU patients'}
     
@@ -270,6 +291,25 @@ def plot_forecast_canton(table_name,canton, curve, full_name_canton, title= None
     xaxis_title='Date',
     yaxis_title=f'New {names[target_curve_name]}',
     template = 'plotly_white')
+=======
+    # Dict with names for the curves
+    names = {'hosp': 'Forecast New Hospitalizations',
+             'ICU_patients': 'Forecast Total ICU patients'}
+
+    if title == None:
+
+        title = f"{full_name_canton}"
+
+    fig.update_layout(width=900, height=500, title={
+        'text': title,
+        'y': 0.87,
+        'x': 0.42,
+        'xanchor': 'center',
+        'yanchor': 'top'},
+        xaxis_title='Date',
+        yaxis_title=f'{names[target_curve_name]}',
+        template='plotly_white')
+>>>>>>> Stashed changes
 
     # adding the traces
     # Data

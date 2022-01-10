@@ -64,7 +64,7 @@ def plot_predictions(table_name, curve, title=None):
     fig = go.Figure()
 
     # Dict with names for the curves
-    names = {'hosp': 'Hospitalizations', 'ICU_patients': 'ICU patients'}
+    names = {'hosp': 'New Hospitalizations', 'ICU_patients': 'Total ICU patients'}
 
     if title == None:
 
@@ -77,7 +77,7 @@ def plot_predictions(table_name, curve, title=None):
         'xanchor': 'center',
         'yanchor': 'top'},
         xaxis_title='Date',
-        yaxis_title=f'New {names[target_curve_name]}',
+        yaxis_title=f'{names[target_curve_name]}',
         template='plotly_white')
 
     # adding the traces
@@ -241,8 +241,8 @@ def plot_forecast(table_name, curve, title=None):
     fig = go.Figure()
 
     # Dict with names for the curves
-    names = {'hosp': 'Forecast Hospitalizations',
-             'ICU_patients': 'Forecast ICU patients'}
+    names = {'hosp': 'Forecast New Hospitalizations',
+             'ICU_patients': 'Forecast Total ICU patients'}
 
     if title == None:
 
@@ -255,7 +255,7 @@ def plot_forecast(table_name, curve, title=None):
         'xanchor': 'center',
         'yanchor': 'top'},
         xaxis_title='Date',
-        yaxis_title=f'New {names[target_curve_name]}',
+        yaxis_title=f'{names[target_curve_name]}',
         template='plotly_white')
 
     # adding the traces
