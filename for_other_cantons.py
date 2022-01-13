@@ -252,6 +252,7 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
 
     df_for = pd.read_sql(
         f"select * from switzerland.{table_name} where canton='{canton}';", engine)
+    
 
     df_for.index = pd.to_datetime(df_for.date)
 
