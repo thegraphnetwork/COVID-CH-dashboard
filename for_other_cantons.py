@@ -186,7 +186,7 @@ def plot_predictions_canton(table_name, curve, canton, full_name_canton, title=N
     fig = go.Figure()
 
     # Dict with names for the curves
-    names = {'hosp': 'Hospitalizations', 'ICU_patients': 'ICU patients'}
+    names = {'hosp': 'New Hospitalizations', 'ICU_patients': 'Total ICU patients'}
 
     if title == None:
 
@@ -199,7 +199,7 @@ def plot_predictions_canton(table_name, curve, canton, full_name_canton, title=N
         'xanchor': 'center',
         'yanchor': 'top'},
         xaxis_title='Date',
-        yaxis_title=f'New {names[target_curve_name]}',
+        yaxis_title=f'{names[target_curve_name]}',
         template='plotly_white')
 
     # adding the traces
@@ -252,6 +252,7 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
 
     df_for = pd.read_sql(
         f"select * from switzerland.{table_name} where canton='{canton}';", engine)
+    
 
     df_for.index = pd.to_datetime(df_for.date)
 
@@ -268,8 +269,8 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
     fig = go.Figure()
 
     # Dict with names for the curves
-    names = {'hosp': 'Forecast Hospitalizations',
-             'ICU_patients': 'Forecast ICU patients'}
+    names = {'hosp': 'Forecast New Hospitalizations',
+             'ICU_patients': 'Forecast Total ICU patients'}
 
     if title == None:
 
@@ -282,7 +283,7 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
         'xanchor': 'center',
         'yanchor': 'top'},
         xaxis_title='Date',
-        yaxis_title=f'New {names[target_curve_name]}',
+        yaxis_title=f'{names[target_curve_name]}',
         template='plotly_white')
 
     # adding the traces
