@@ -61,7 +61,10 @@ def plot_cases_canton(full_name_canton, canton):
     df = get_curve('cases', canton)
 
     df.sort_index(inplace=True)
+    
+    last_date = df.index[-1]
     df = df['2021-08-01':]
+    df = df.iloc[:-3]
 
     # computing the rolling average
     m_movel = df.rolling(7).mean().dropna()
@@ -93,7 +96,7 @@ def plot_cases_canton(full_name_canton, canton):
     fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline=False,
                      showline=True, linewidth=1, linecolor='black', mirror=True)
 
-    return fig, df.index[-1], df.entries[-2:]
+    return fig, last_date, df.entries[-2:]
 
 
 def get_hospCapacity(canton):
@@ -102,7 +105,10 @@ def get_hospCapacity(canton):
     :param canton: Two letter symbol for the canton 
     '''
     df = get_curve('hospcapacity', canton)
-    return df.Total_Covid19Patients[-2:], df.TotalPercent_Covid19Patients[-2:]
+    df = df.resample('D').mean()
+    df = df.sort_index() 
+    df = df.iloc[:-3]
+    return df.Total_Covid19Patients[-2:].astype('int'), df.TotalPercent_Covid19Patients[-2:]
 
 
 def plot_hosp_canton(full_name_canton, canton):
@@ -118,7 +124,9 @@ def plot_hosp_canton(full_name_canton, canton):
 
     df.sort_index(inplace=True)
     df = df['2021-08-01':]
-
+    
+    df = df.iloc[:-3]
+    
     # computing the rolling average
     m_movel = df.rolling(7).mean().dropna()
 
@@ -186,7 +194,8 @@ def plot_predictions_canton(table_name, curve, canton, full_name_canton, title=N
     fig = go.Figure()
 
     # Dict with names for the curves
-    names = {'hosp': 'New Hospitalizations', 'ICU_patients': 'Total ICU patients'}
+    names = {'hosp': 'New Hospitalizations', 'ICU_patients': 'Total ICU patients',
+             'total_hosp': 'Total hospitalizations'}
 
     if title == None:
 
@@ -256,9 +265,11 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
 
     df_for.index = pd.to_datetime(df_for.date)
 
-    curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity'}
+    curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity', 
+              'total_hosp': 'hospcapacity'}
     ydata = get_curve(curves[curve], canton)
     ydata = ydata.resample('D').mean()
+    ydata = ydata.iloc[:-3]
     ydata = ydata.rolling(7).mean().dropna()
 
     dates_forecast = df_for.index
@@ -270,7 +281,8 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
 
     # Dict with names for the curves
     names = {'hosp': 'Forecast New Hospitalizations',
-             'ICU_patients': 'Forecast Total ICU patients'}
+             'ICU_patients': 'Forecast Total ICU patients', 
+             'total_hosp': 'Total hospitalizations'}
 
     if title == None:
 
@@ -289,13 +301,14 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
     # adding the traces
     # Data
 
-    column_curves = {'hosp': 'entries', 'ICU_patients': 'ICU_Covid19Patients'}
+    column_curves = {'hosp': 'entries', 'ICU_patients': 'ICU_Covid19Patients',
+                     'total_hosp' : 'Total_Covid19Patients'}
 
     fig.add_trace(go.Scatter(
         x=ydata.index[-150:], y=ydata[column_curves[curve]][-150:], name='Data', line=dict(color='black')))
 
     # Separation between data and forecast
-    fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
+    fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
         max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
 
     # LightGBM
@@ -406,11 +419,8 @@ def app():
 
     st.write('''
     ## 14-day Forecasts
-             Below, we have the forecast for the next 14 days, for both Hospitalizations,
-             and ICU occupancy
-             
-             The 95% confidence bounds are also shown
-             The table with the forecasts can be downloaded by clicking on the button. 
+    Below, we have the forecast for the next 14 days, for both Hospitalizations,
+    and ICU occupancy. The 95% confidence bounds are also shown.The table with the forecasts can be downloaded by clicking on the button. 
 
              ''')
 
@@ -420,6 +430,15 @@ def app():
     filename = 'forecast_hosp.csv'
     download_button_str = download_button(
         df_hosp, filename, 'Download data', pickle_it=False)
+
+    st.markdown(download_button_str, unsafe_allow_html=True)
+    
+    fig_total, df_total = plot_forecast_canton(
+        'ml_for_total_all_cantons', canton=canton, curve='total_hosp', full_name_canton=full_name_canton)
+    st.plotly_chart(fig_total, use_container_width=True)
+    filename = 'forecast_total.csv'
+    download_button_str = download_button(
+        df_total, filename, 'Download data', pickle_it=False)
 
     st.markdown(download_button_str, unsafe_allow_html=True)
 
@@ -442,6 +461,16 @@ def app():
         'ml_val_hosp_all_cantons', curve='hosp', canton=canton, full_name_canton=full_name_canton)
 
     st.plotly_chart(fig_val, use_container_width=True)
+    
+    st.write('''
+             Below, we have the same as above, but for the total hospitalizations.  
+
+             ''')
+
+    fig_val_total = plot_predictions_canton(
+        'ml_val_total_all_cantons', curve='total_hosp', canton=canton, full_name_canton=full_name_canton)
+
+    st.plotly_chart(fig_val_total, use_container_width=True)
 
     st.write('''
              Below, we have the same as above, but for the ICU occupancy.  
