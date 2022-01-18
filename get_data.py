@@ -188,8 +188,11 @@ def get_canton_data(curve, canton, ini_date=None):
     '''
     
     # dictionary with the columns that will be used for each curve. 
-    dict_cols = {'cases': ['geoRegion', 'datum', 'entries'], 'test': ['geoRegion', 'datum', 'entries', 'entries_pos'],
-                 'hosp': ['geoRegion', 'datum', 'entries'], 'hospcapacity': ['geoRegion', 'date', 'ICU_Covid19Patients'], 're': ['geoRegion', 'date', 'median_R_mean']
+    dict_cols = {'cases': ['geoRegion', 'datum', 'entries'], 
+                 'test': ['geoRegion', 'datum', 'entries', 'entries_pos'],
+                 'hosp': ['geoRegion', 'datum', 'entries'], 
+                 'hospcapacity': ['geoRegion', 'date', 'ICU_Covid19Patients','Total_Covid19Patients' ],
+                 're': ['geoRegion', 'date', 'median_R_mean']
                  }
 
     # getting the data from the databank
