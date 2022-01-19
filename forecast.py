@@ -573,6 +573,7 @@ def app():
              ''')
              
     st.write('## Forecast results')
+    st.write('### New Hospitalizations')
 
     select_data = st.checkbox('Updated data', value=False)
     
@@ -607,6 +608,8 @@ def app():
                 df_hosp, filename, 'Download data', pickle_it=False)
     
             st.markdown(download_button_str, unsafe_allow_html=True)
+    
+    st.write('### Total Hospitalizations')
 
     SEIR_preds_tot = st.checkbox('SEIR - model', key = 'check_2', value = False )
     
