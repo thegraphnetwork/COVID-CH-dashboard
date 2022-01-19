@@ -108,6 +108,7 @@ def get_hospCapacity(canton):
     df = df.resample('D').mean()
     df = df.sort_index() 
     df = df.iloc[:-3]
+    df = df.fillna(0)
     return df.Total_Covid19Patients[-2:].astype('int'), df.TotalPercent_Covid19Patients[-2:]
 
 
