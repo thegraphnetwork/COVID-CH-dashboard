@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 #import streamlit as st
 
 engine_public = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
-engine_private = create_engine("postgresql://epigraph:epigraph@localhost:5432/privatehub")
 
 
 def get_curve_all(curve):
@@ -147,30 +146,6 @@ def compute_clusters(curve, t, plot=False):
     all_regions = df.geoRegion.unique()
 
     return clusters, all_regions, fig
-
-def get_updated_data(smooth):
-    
-    '''
-    Function to get the updated data for Geneva
-    
-    param smooth: Boolean. If True, a rolling average is applied
-    
-    return: dataframe. 
-    '''
-    
-    df = pd.read_sql_table('hug_hosp_data', engine_private, schema = 'switzerland', columns = ['Date_Entry', 'Patient_id'])
-   
-    df.index = pd.to_datetime(df.Date_Entry)
-    df_hosp = df.resample('D').count()
-    df_hosp = df_hosp[['Patient_id']]
-    
-    if smooth == True:
-        df_hosp  = df_hosp[['Patient_id']].rolling(window = 7).mean()
-        df_hosp = df_hosp.dropna()
-        
-    df_hosp = df_hosp.sort_index()
-    df_hosp.rename(columns= {'Patient_id':'hosp_GE'}, inplace = True)
-    return df_hosp['2021-09-01':]
     
 
 #@st.cache

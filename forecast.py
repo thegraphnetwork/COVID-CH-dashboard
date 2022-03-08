@@ -20,7 +20,7 @@ import uuid
 import re
 import plotly.graph_objects as go
 import streamlit as st
-from get_data import get_canton_data, get_updated_data, get_curve
+from get_data import get_canton_data, get_curve
 from plots import scatter_plot_cases_hosp
 from sqlalchemy import create_engine
 engine = create_engine(
@@ -47,6 +47,8 @@ def plot_predictions(table_name, curve, title=None):
 
     df_val = pd.read_sql_table(
         table_name, engine, schema='switzerland', index_col='date')
+
+    df_val  = df_val.loc[df_val.canton == canton]
 
     target = df_val['target']
     train_size = df_val['train_size'].values[0]
@@ -238,15 +240,15 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
         table_name, engine, schema='switzerland', index_col='date')
     
 
-    if table_name == 'ml_forecast_hosp_up':
-        ydata = get_updated_data(smooth=True)
+    #if table_name == 'ml_forecast_hosp_up':
+        #ydata = get_updated_data(smooth=True)
 
-    else:
-        curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
-        ydata = get_canton_data(curves[curve], ['GE'])
-        ydata = ydata.resample('D').mean()
-        ydata = ydata.iloc[:-3]
-        ydata = ydata.rolling(7).mean().dropna()
+    
+    curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
+    ydata = get_canton_data(curves[curve], ['GE'])
+    ydata = ydata.resample('D').mean()
+    ydata = ydata.iloc[:-3]
+    ydata = ydata.rolling(7).mean().dropna()
 
     dates_forecast = df_for.index
     forecast5 = df_for['lower']
@@ -277,39 +279,39 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
     # adding the traces
     # Data
 
-    if table_name == 'ml_forecast_hosp_up':
-        fig.add_trace(go.Scatter(
-            x=ydata.index[-150:], y=ydata.hosp_GE[-150:], name='Data', line=dict(color='black')))
+    #if table_name == 'ml_forecast_hosp_up':
+    #    fig.add_trace(go.Scatter(
+    #        x=ydata.index[-150:], y=ydata.hosp_GE[-150:], name='Data', line=dict(color='black')))
 
         # Separation between data and forecast
-        fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min(min(ydata.hosp_GE[-150:]), min(forecast95)), max(
-            max(ydata.hosp_GE[-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
+    #    fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min(min(ydata.hosp_GE[-150:]), min(forecast95)), max(
+    #        max(ydata.hosp_GE[-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
 
-    else:
 
-        column_curves = {'hosp': 'entries',
+
+    column_curves = {'hosp': 'entries',
                          'ICU_patients': 'ICU_Covid19Patients', 
                          'total_hosp': 'Total_Covid19Patients'}
 
-        fig.add_trace(go.Scatter(
-            x=ydata.index[-150:], y=ydata[column_curves[curve]][-150:], name='Data', line=dict(color='black')))
+    fig.add_trace(go.Scatter(
+        x=ydata.index[-150:], y=ydata[column_curves[curve]][-150:], name='Data', line=dict(color='black')))
 
-        if SEIR_preds == False:
-            # Separation between data and forecast
-            fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
-            max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
+    if SEIR_preds == False:
+        # Separation between data and forecast
+        fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
+        max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
 
-    # LightGBM
-    fig.add_trace(go.Scatter(x=dates_forecast, y=forecast50,
-                  name='Forecast LightGBM', line=dict(color='#FF7F0E')))
+        # LightGBM
+        fig.add_trace(go.Scatter(x=dates_forecast, y=forecast50,
+                    name='Forecast LightGBM', line=dict(color='#FF7F0E')))
 
-    fig.add_trace(go.Scatter(x=dates_forecast, y=forecast5, line=dict(
-        color='#FF7F0E', width=0), mode='lines',  showlegend=False))
+        fig.add_trace(go.Scatter(x=dates_forecast, y=forecast5, line=dict(
+            color='#FF7F0E', width=0), mode='lines',  showlegend=False))
 
-    fig.add_trace(go.Scatter(x=dates_forecast, y=forecast95, line=dict(color='#FF7F0E', width=0),
-                             mode='lines',
-                             fillcolor='rgba(255, 127, 14, 0.3)', fill='tonexty', showlegend=False))
-    
+        fig.add_trace(go.Scatter(x=dates_forecast, y=forecast95, line=dict(color='#FF7F0E', width=0),
+                                mode='lines',
+                                fillcolor='rgba(255, 127, 14, 0.3)', fill='tonexty', showlegend=False))
+        
     
         
     if SEIR_preds:
@@ -495,7 +497,7 @@ def app():
     with c2:
         st.metric("Daily new Hospitalizations", value=last_hosp[-1],
                   delta=f"{last_hosp.diff()[-1]:.1f} Hospitalizations", delta_color="inverse")
-        st.metric("Percent of total Hospitalizations", value=perc_hc[-1], 
+        st.metric("Percent of total Hospitalizations", value=f"{perc_hc[-1]:.2f}", 
         delta=f"{perc_hc.diff()[-1]:.2f} %",
         delta_color="inverse")
         st.plotly_chart(fig_h, use_container_width=True)
@@ -513,11 +515,12 @@ def app():
 
     st.image(scatter_cases_hosp_GE)
 
-    st.title('Forecast of Daily Hospitalizations')
+    st.title('Forecasts')
 
     st.write('''
-             Daily hospitalizations in canton Geneva, were forecasted using a 
-             Gradient Boosting Machine quantile regression model (LightGBM).
+             To forecast the daily hospitalizations, total hospitalizations, and total ICU hospitalizations
+             in canton Geneva, it was used a Gradient Boosting Machine that returns
+             probabilistic predictions implemented in the python package `NGBoost`.
              
              In the model, we use as predictors the series of cases, hospitalizations,
              tests and ICU occupations from all the cantons belonging to the same cluster
@@ -529,18 +532,17 @@ def app():
              ''')
 
     st.write(r'''
-             where C stands for cases, H stands for hospitalizations, V for vaccination,
+             for the daily hospitalizations, where C stands for cases, H stands for hospitalizations, V for vaccination,
              and ICU for the number of ICU patients. The model bases its predictions
              on the last 14 days: $\tau_1, \tau_2, \ldots, \tau_{14}$ and predicts the
-             next 14 days. For each of these 14 days, one model is trained. 
+             next 14 days. For each of these 14 days, one model is trained. The regression for the 
+             total hospitalizations and total ICU hospitalizations follows the same format defined above.
              ''')
 
     st.write('''
     ## 14-day Forecasts
-    Below, we have the forecast for the next 14 days, for both Hospitalizations,
-    and ICU occupancy. The 95% confidence bounds are also shown. The table with the forecasts can be downloaded by clicking on the button. 
-
-    The checkbox `Updated data` selects the usage of HUG updated hospitalization data, in the generation of the forecasts.
+    Below, we have the forecast for the next 14 days, for daily hospitalizations, total hospitalizations
+    and total ICU hospitalizations. The 95% confidence bounds are also shown. The table with the forecasts can be downloaded by clicking on the button. 
 
              ''')
              
@@ -548,7 +550,7 @@ def app():
               ## SEIR model
               
               The checkbox `SEIR - model` plots in the graph the predictions
-              of new hospitalizations of an SEIR model stratified by age (In the graph are shown the sum of all new hospitalizations).
+              of an SEIR model stratified by age (In the graph are the sum of the observations in all ages).
               This model considers the scenarios below:
               
               ##### Scenario 2: Omicron included with the following (overall pessimistic) assumptions:
@@ -575,39 +577,39 @@ def app():
     st.write('## Forecast results')
     st.write('### New Hospitalizations')
 
-    select_data = st.checkbox('Updated data', value=False)
+    #select_data = st.checkbox('Updated data', value=False)
     
-    if select_data == False:
-        SEIR_preds = st.checkbox('SEIR - model', key = 'check_1', value = False )
+    #if select_data == False:
+    SEIR_preds = st.checkbox('SEIR - model', key = 'check_1', value = False )
 
-    if select_data:
-        fig_for, df_hosp = plot_forecast('ml_forecast_hosp_up',curve = 'hosp',SEIR_preds = False)
+    #if select_data:
+    #    fig_for, df_hosp = plot_forecast('ml_forecast_hosp_up',curve = 'hosp',SEIR_preds = False)
+    #    st.plotly_chart(fig_for, use_container_width=True)
+    #    filename = 'forecast_hosp.csv'
+    #    download_button_str = download_button(
+    #        df_hosp, filename, 'Download data', pickle_it=False)
+
+    #    st.markdown(download_button_str, unsafe_allow_html=True)
+
+    #else:
+        
+    if SEIR_preds:
+        fig_for, df_hosp = plot_forecast('ml_forecast_hosp', curve='hosp',SEIR_preds = True)
+        st.plotly_chart(fig_for, use_container_width=True)
+        filename = 'forecast_hosp.csv'
+        download_button_str = download_button(
+                df_hosp, filename, 'Download data', pickle_it=False)
+    
+        st.markdown(download_button_str, unsafe_allow_html=True)
+        
+    else:
+        fig_for, df_hosp = plot_forecast('ml_forecast_hosp', curve='hosp',SEIR_preds = False)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_hosp.csv'
         download_button_str = download_button(
             df_hosp, filename, 'Download data', pickle_it=False)
-
+    
         st.markdown(download_button_str, unsafe_allow_html=True)
-
-    else:
-        
-        if SEIR_preds:
-            fig_for, df_hosp = plot_forecast('ml_forecast_hosp', curve='hosp',SEIR_preds = True)
-            st.plotly_chart(fig_for, use_container_width=True)
-            filename = 'forecast_hosp.csv'
-            download_button_str = download_button(
-                df_hosp, filename, 'Download data', pickle_it=False)
-    
-            st.markdown(download_button_str, unsafe_allow_html=True)
-        
-        else:
-            fig_for, df_hosp = plot_forecast('ml_forecast_hosp', curve='hosp',SEIR_preds = False)
-            st.plotly_chart(fig_for, use_container_width=True)
-            filename = 'forecast_hosp.csv'
-            download_button_str = download_button(
-                df_hosp, filename, 'Download data', pickle_it=False)
-    
-            st.markdown(download_button_str, unsafe_allow_html=True)
     
     st.write('### Total Hospitalizations')
 
@@ -631,7 +633,8 @@ def app():
     
         st.markdown(download_button_str, unsafe_allow_html=True)
         
-        
+    st.write('### Total ICU Hospitalizations')
+
     SEIR_preds_icu = st.checkbox('SEIR - model', key = 'check_3', value = False )
     
     if SEIR_preds_icu:
@@ -661,14 +664,14 @@ def app():
              for the machine learning model.  
 
              ''')
-    fig = plot_predictions('ml_validation_hosp_up', curve='hosp')
+    fig = plot_predictions('ml_val_hosp_all_cantons', curve='hosp')
     st.plotly_chart(fig, use_container_width=True)
     
     st.write('''
              Below, we have the same as above, but for the total hospitalizations.  
 
              ''')
-    fig = plot_predictions('ml_validation_total', curve='total_hosp')
+    fig = plot_predictions('ml_val_total_all_cantons', curve='total_hosp')
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -676,6 +679,6 @@ def app():
              Below, we have the same as above, but for the ICU occupancy.  
 
              ''')
-    fig = plot_predictions('ml_validation_icu', curve='ICU_patients')
+    fig = plot_predictions('ml_val_icu_all_cantons', curve='ICU_patients')
     st.plotly_chart(fig, use_container_width=True)
     
