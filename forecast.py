@@ -96,8 +96,8 @@ def plot_predictions(table_name, curve, title=None):
     # Separação entre os dados de teste e o forecast
     # fig.add_trace(go.Scatter(x=[target.index[-1], target.index[-1]], y=[min_val,max_val], name="Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
 
-    # LightGBM predictions
-    fig.add_trace(go.Scatter(x=x, y=y50, name='LightGBM',
+    # NGBoost predictions
+    fig.add_trace(go.Scatter(x=x, y=y50, name='NGBoost',
                   line=dict(color='#FF7F0E')))
 
     fig.add_trace(go.Scatter(x=x, y=y5, line=dict(
@@ -129,7 +129,7 @@ def plot_cases():
     
     last_date = df.index[-1]
     
-    df = df['2021-08-01':]
+    df = df['2021-11-01':]
     
     df = df.iloc[:-3]
 
@@ -146,7 +146,7 @@ def plot_cases():
         'x': 0.42,
         'xanchor': 'center',
         'yanchor': 'top'},
-        legend={'orientation': 'h', 'valign':'top'},
+        legend={'orientation': 'h', 'valign':'top', 'y': -0.25},
         xaxis_title='Report Date',
         yaxis_title='New cases',
         template='plotly_white')
@@ -183,7 +183,7 @@ def plot_hosp():
 
     df = get_curve('hosp', 'GE')
     
-    df = df['2021-08-01':]
+    df = df['2021-11-01':]
     
     df = df.iloc[:-3]
 
@@ -200,7 +200,7 @@ def plot_hosp():
         'x': 0.42,
         'xanchor': 'center',
         'yanchor': 'top'},
-        legend={'orientation': 'h', 'valign':'top'},
+        legend={'orientation': 'h', 'valign':'top', 'y': -0.25},
         xaxis_title='Report Date',
         yaxis_title='New hospitalizations',
         template='plotly_white')
@@ -239,6 +239,7 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
     df_for = pd.read_sql_table(
         table_name, engine, schema='switzerland', index_col='date')
     
+    df_for  = df_for.loc[df_for.canton == canton]
 
     #if table_name == 'ml_forecast_hosp_up':
         #ydata = get_updated_data(smooth=True)
@@ -301,9 +302,9 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
         fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
         max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
 
-        # LightGBM
+        # NGBoost
         fig.add_trace(go.Scatter(x=dates_forecast, y=forecast50,
-                    name='Forecast LightGBM', line=dict(color='#FF7F0E')))
+                    name='Forecast NGBoost', line=dict(color='#FF7F0E')))
 
         fig.add_trace(go.Scatter(x=dates_forecast, y=forecast5, line=dict(
             color='#FF7F0E', width=0), mode='lines',  showlegend=False))
@@ -594,7 +595,7 @@ def app():
     #else:
         
     if SEIR_preds:
-        fig_for, df_hosp = plot_forecast('ml_forecast_hosp', curve='hosp',SEIR_preds = True)
+        fig_for, df_hosp = plot_forecast('ml_for_hosp_all_cantons', curve='hosp',SEIR_preds = True)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_hosp.csv'
         download_button_str = download_button(
@@ -603,7 +604,7 @@ def app():
         st.markdown(download_button_str, unsafe_allow_html=True)
         
     else:
-        fig_for, df_hosp = plot_forecast('ml_forecast_hosp', curve='hosp',SEIR_preds = False)
+        fig_for, df_hosp = plot_forecast('ml_for_hosp_all_cantons', curve='hosp',SEIR_preds = False)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_hosp.csv'
         download_button_str = download_button(
@@ -616,7 +617,7 @@ def app():
     SEIR_preds_tot = st.checkbox('SEIR - model', key = 'check_2', value = False )
     
     if SEIR_preds_tot:
-        fig_for, df_icu = plot_forecast('ml_forecast_total', curve='total_hosp',SEIR_preds = True)
+        fig_for, df_icu = plot_forecast('ml_for_total_all_cantons', curve='total_hosp',SEIR_preds = True)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_total_hosp.csv'
         download_button_str = download_button(
@@ -625,7 +626,7 @@ def app():
         st.markdown(download_button_str, unsafe_allow_html=True)
         
     else:
-        fig_for, df_icu = plot_forecast('ml_forecast_total', curve='total_hosp',SEIR_preds = False)
+        fig_for, df_icu = plot_forecast('ml_for_total_all_cantons', curve='total_hosp',SEIR_preds = False)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_total_hosp.csv'
         download_button_str = download_button(
@@ -638,7 +639,7 @@ def app():
     SEIR_preds_icu = st.checkbox('SEIR - model', key = 'check_3', value = False )
     
     if SEIR_preds_icu:
-        fig_for, df_icu = plot_forecast('ml_forecast_icu', curve='ICU_patients',SEIR_preds = True)
+        fig_for, df_icu = plot_forecast('ml_for_icu_all_cantons', curve='ICU_patients',SEIR_preds = True)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_ICU.csv'
         download_button_str = download_button(
@@ -647,7 +648,7 @@ def app():
         st.markdown(download_button_str, unsafe_allow_html=True)
 
     else:
-        fig_for, df_icu = plot_forecast('ml_forecast_icu', curve='ICU_patients',SEIR_preds = False)
+        fig_for, df_icu = plot_forecast('ml_for_icu_all_cantons', curve='ICU_patients',SEIR_preds = False)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_ICU.csv'
         download_button_str = download_button(
