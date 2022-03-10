@@ -63,7 +63,7 @@ def plot_cases_canton(full_name_canton, canton):
     df.sort_index(inplace=True)
     
     last_date = df.index[-1]
-    df = df['2021-08-01':]
+    df = df['2021-11-01':]
     df = df.iloc[:-3]
 
     # computing the rolling average
@@ -79,7 +79,7 @@ def plot_cases_canton(full_name_canton, canton):
         'x': 0.42,
         'xanchor': 'center',
         'yanchor': 'top'},
-        legend={'orientation': 'h', 'valign': 'top'},
+        legend={'orientation': 'h', 'valign':'top', 'y': -0.25},
         xaxis_title='Report Date',
         yaxis_title='New cases',
         template='plotly_white')
@@ -124,7 +124,7 @@ def plot_hosp_canton(full_name_canton, canton):
     df = get_curve('hosp', canton)
 
     df.sort_index(inplace=True)
-    df = df['2021-08-01':]
+    df = df['2021-11-01':]
     
     df = df.iloc[:-3]
     
@@ -141,10 +141,11 @@ def plot_hosp_canton(full_name_canton, canton):
         'x': 0.42,
         'xanchor': 'center',
         'yanchor': 'top'},
-        legend={'orientation': 'h', 'yanchor': 'bottom'},
+        legend={'orientation': 'h', 'valign':'top', 'y': -0.25},
         xaxis_title='Report Date',
         yaxis_title='New hospitalizations',
         template='plotly_white')
+
 
     fig.add_trace(go.Bar(x=df.index, y=df.entries,
                   name='New hospitalizations', marker_color='rgba(31, 119, 180, 0.7)'))
@@ -225,8 +226,8 @@ def plot_predictions_canton(table_name, curve, canton, full_name_canton, title=N
     # Separação entre os dados de teste e o forecast
     # fig.add_trace(go.Scatter(x=[target.index[-1], target.index[-1]], y=[min_val,max_val], name="Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
 
-    # LightGBM predictions
-    fig.add_trace(go.Scatter(x=x, y=y50, name='LightGBM',
+    # NGBoost predictions
+    fig.add_trace(go.Scatter(x=x, y=y50, name='NGBoost',
                   line=dict(color='#FF7F0E')))
 
     fig.add_trace(go.Scatter(x=x, y=y5, line=dict(
@@ -312,9 +313,9 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
     fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
         max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
 
-    # LightGBM
+    # NGBoost
     fig.add_trace(go.Scatter(x=dates_forecast, y=forecast50,
-                  name='Forecast LightGBM', line=dict(color='#FF7F0E')))
+                  name='Forecast NGBoost', line=dict(color='#FF7F0E')))
 
     fig.add_trace(go.Scatter(x=dates_forecast, y=forecast5, line=dict(
         color='#FF7F0E', width=0), mode='lines',  showlegend=False))
@@ -405,7 +406,7 @@ def app():
         st.metric("Daily new Hospitalizations", value=last_hosp[-1],
                   delta=f"{last_hosp.diff()[-1]:.1f} Hospitalizations",
                   delta_color="inverse")
-        st.metric("Percent of total Hospitalizations", value=perc_hc[-1],
+        st.metric("Percent of total Hospitalizations", value=f"{perc_hc[-1]:.2f}",
                   delta=f"{perc_hc.diff()[-1]:.2f} %", delta_color="inverse")
         st.plotly_chart(fig_h, use_container_width=True)
 
@@ -419,9 +420,9 @@ def app():
     st.image(scatter_cases_hosp_all)
 
     st.write('''
-    ## 14-day Forecasts
-    Below, we have the forecast for the next 14 days, for both Hospitalizations,
-    and ICU occupancy. The 95% confidence bounds are also shown.The table with the forecasts can be downloaded by clicking on the button. 
+     ## 14-day Forecasts
+    Below, we have the forecast for the next 14 days, for daily hospitalizations, total hospitalizations
+    and total ICU hospitalizations. The 95% confidence bounds are also shown. The table with the forecasts can be downloaded by clicking on the button. 
 
              ''')
 
