@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import io
+from datetime import timedelta 
 from io import BytesIO
 import base64
 import json
@@ -294,8 +295,10 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
                          'ICU_patients': 'ICU_Covid19Patients', 
                          'total_hosp': 'Total_Covid19Patients'}
 
+    min_data = min(ydata.index[-1], df_for.index[0] - timedelta(days=1))
+
     fig.add_trace(go.Scatter(
-        x=ydata.index[-150:], y=ydata[column_curves[curve]][-150:], name='Data', line=dict(color='black')))
+        x=ydata.loc[:min_data].index[-150:], y=ydata.loc[:min_data][column_curves[curve]][-150:], name='Data', line=dict(color='black')))
 
     if SEIR_preds == False:
         # Separation between data and forecast

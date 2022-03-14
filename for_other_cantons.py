@@ -8,6 +8,7 @@ Created on Mon Jan  3 09:20:09 2022
 import pandas as pd
 import numpy as np
 import streamlit as st
+from datetime import timedelta 
 import plotly.graph_objects as go
 from forecast import download_button
 from get_data import get_curve
@@ -306,8 +307,11 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
     column_curves = {'hosp': 'entries', 'ICU_patients': 'ICU_Covid19Patients',
                      'total_hosp' : 'Total_Covid19Patients'}
 
+    min_data = min(ydata.index[-1], df_for.index[0] - timedelta(days=1))
+
+
     fig.add_trace(go.Scatter(
-        x=ydata.index[-150:], y=ydata[column_curves[curve]][-150:], name='Data', line=dict(color='black')))
+        x=ydata.loc[:min_data].index[-150:], y=ydata.loc[:min_data][column_curves[curve]][-150:], name='Data', line=dict(color='black')))
 
     # Separation between data and forecast
     fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
