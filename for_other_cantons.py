@@ -65,7 +65,7 @@ def plot_cases_canton(full_name_canton, canton):
     
     last_date = df.index[-1]
     df = df['2021-11-01':]
-    df = df.iloc[:-3]
+    #df = df.iloc[:-3]
 
     # computing the rolling average
     m_movel = df.rolling(7).mean().dropna()
@@ -108,7 +108,7 @@ def get_hospCapacity(canton):
     df = get_curve('hospcapacity', canton)
     df = df.resample('D').mean()
     df = df.sort_index() 
-    df = df.iloc[:-3]
+    #df = df.iloc[:-3]
     df = df.fillna(0)
     return df.Total_Covid19Patients[-2:].astype('int'), df.TotalPercent_Covid19Patients[-2:]
 
@@ -127,7 +127,7 @@ def plot_hosp_canton(full_name_canton, canton):
     df.sort_index(inplace=True)
     df = df['2021-11-01':]
     
-    df = df.iloc[:-3]
+    #df = df.iloc[:-3]
     
     # computing the rolling average
     m_movel = df.rolling(7).mean().dropna()
@@ -272,7 +272,7 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
               'total_hosp': 'hospcapacity'}
     ydata = get_curve(curves[curve], canton)
     ydata = ydata.resample('D').mean()
-    ydata = ydata.iloc[:-3]
+    #ydata = ydata.iloc[:-3]
     ydata = ydata.rolling(7).mean().dropna()
 
     dates_forecast = df_for.index

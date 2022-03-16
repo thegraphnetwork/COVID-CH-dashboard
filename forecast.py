@@ -132,7 +132,7 @@ def plot_cases():
     
     df = df['2021-11-01':]
     
-    df = df.iloc[:-3]
+    #df = df.iloc[:-3]
 
     # computing the rolling average
     m_movel = df.rolling(7).mean().dropna()
@@ -170,7 +170,7 @@ def get_hospCapacity():
     df = get_curve('hospcapacity', 'GE')
     df = df.resample('D').mean()
     df = df.sort_index()
-    df = df.iloc[:-3]
+    #df = df.iloc[:-3]
     return df.Total_Covid19Patients[-2:].astype('int'),df.TotalPercent_Covid19Patients[-2:]
 
 def plot_hosp():
@@ -186,7 +186,7 @@ def plot_hosp():
     
     df = df['2021-11-01':]
     
-    df = df.iloc[:-3]
+    #df = df.iloc[:-3]
 
     # computing the rolling average
     m_movel = df.rolling(7).mean().dropna()
@@ -249,7 +249,7 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
     curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
     ydata = get_canton_data(curves[curve], ['GE'])
     ydata = ydata.resample('D').mean()
-    ydata = ydata.iloc[:-3]
+    #ydata = ydata.iloc[:-3]
     ydata = ydata.rolling(7).mean().dropna()
 
     dates_forecast = df_for.index
