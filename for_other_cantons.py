@@ -110,7 +110,7 @@ def get_hospCapacity(canton):
     df = df.sort_index() 
     #df = df.iloc[:-3]
     df = df.fillna(0)
-    return df.Total_Covid19Patients[-2:].astype('int'), df.TotalPercent_Covid19Patients[-2:]
+    return df.total_covid19patients[-2:].astype('int'), df.totalpercent_covid19patients[-2:]
 
 
 def plot_hosp_canton(full_name_canton, canton):
@@ -197,7 +197,7 @@ def plot_predictions_canton(table_name, curve, canton, full_name_canton, title=N
     fig = go.Figure()
 
     # Dict with names for the curves
-    names = {'hosp': 'New Hospitalizations', 'ICU_patients': 'Total ICU patients',
+    names = {'hosp': 'New Hospitalizations', 'icu_patients': 'Total ICU patients',
              'total_hosp': 'Total hospitalizations'}
 
     if title == None:
@@ -268,7 +268,7 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
 
     df_for.index = pd.to_datetime(df_for.date)
 
-    curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity', 
+    curves = {'hosp': 'hosp', 'icu_patients': 'hospcapacity', 
               'total_hosp': 'hospcapacity'}
     ydata = get_curve(curves[curve], canton)
     ydata = ydata.resample('D').mean()
@@ -284,7 +284,7 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
 
     # Dict with names for the curves
     names = {'hosp': 'Forecast New Hospitalizations',
-             'ICU_patients': 'Forecast Total ICU patients', 
+             'icu_patients': 'Forecast Total ICU patients', 
              'total_hosp': 'Total hospitalizations'}
 
     if title == None:
@@ -304,8 +304,8 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
     # adding the traces
     # Data
 
-    column_curves = {'hosp': 'entries', 'ICU_patients': 'ICU_Covid19Patients',
-                     'total_hosp' : 'Total_Covid19Patients'}
+    column_curves = {'hosp': 'entries', 'icu_patients': 'icu_covid19patients',
+                     'total_hosp' : 'total_covid19patients'}
 
     min_data = min(ydata.index[-1], df_for.index[0] - timedelta(days=1))
 
@@ -339,7 +339,7 @@ def plot_forecast_canton(table_name, canton, curve, full_name_canton, title=None
 
     # fig.write_image(path)
 
-    del df_for['index']
+    #del df_for['index']
     df_for.index = pd.to_datetime(df_for.index)
     df_for.index = df_for.index.date
     df_for.reset_index(inplace=True)
@@ -431,7 +431,7 @@ def app():
              ''')
 
     fig_for, df_hosp = plot_forecast_canton(
-        'ml_for_hosp_all_cantons', canton=canton, curve='hosp', full_name_canton=full_name_canton)
+        'ngboost_forecast_hosp_d_results', canton=canton, curve='hosp', full_name_canton=full_name_canton)
     st.plotly_chart(fig_for, use_container_width=True)
     filename = 'forecast_hosp.csv'
     download_button_str = download_button(
@@ -440,7 +440,7 @@ def app():
     st.markdown(download_button_str, unsafe_allow_html=True)
     
     fig_total, df_total = plot_forecast_canton(
-        'ml_for_total_all_cantons', canton=canton, curve='total_hosp', full_name_canton=full_name_canton)
+        'ngboost_forecast_total_hosp_d_results', canton=canton, curve='total_hosp', full_name_canton=full_name_canton)
     st.plotly_chart(fig_total, use_container_width=True)
     filename = 'forecast_total.csv'
     download_button_str = download_button(
@@ -449,7 +449,7 @@ def app():
     st.markdown(download_button_str, unsafe_allow_html=True)
 
     fig_for_icu, df_icu = plot_forecast_canton(
-        'ml_for_icu_all_cantons', canton=canton, curve='ICU_patients', full_name_canton=full_name_canton)
+        'ngboost_forecast_icu_patients_d_results', canton=canton, curve='icu_patients', full_name_canton=full_name_canton)
     st.plotly_chart(fig_for_icu, use_container_width=True)
     filename = 'forecast_icu.csv'
     download_button_str = download_button(
@@ -464,7 +464,7 @@ def app():
 
              ''')
     fig_val = plot_predictions_canton(
-        'ml_val_hosp_all_cantons', curve='hosp', canton=canton, full_name_canton=full_name_canton)
+        'ngboost_validation_hosp_d_results', curve='hosp', canton=canton, full_name_canton=full_name_canton)
 
     st.plotly_chart(fig_val, use_container_width=True)
     
@@ -474,7 +474,7 @@ def app():
              ''')
 
     fig_val_total = plot_predictions_canton(
-        'ml_val_total_all_cantons', curve='total_hosp', canton=canton, full_name_canton=full_name_canton)
+        'ngboost_validation_total_hosp_d_results', curve='total_hosp', canton=canton, full_name_canton=full_name_canton)
 
     st.plotly_chart(fig_val_total, use_container_width=True)
 
@@ -484,6 +484,6 @@ def app():
              ''')
 
     fig_val_icu = plot_predictions_canton(
-        'ml_val_icu_all_cantons', curve='ICU_patients', canton=canton, full_name_canton=full_name_canton)
+        'ngboost_validation_icu_patients_d_results', curve='icu_patients', canton=canton, full_name_canton=full_name_canton)
 
     st.plotly_chart(fig_val_icu, use_container_width=True)

@@ -67,7 +67,7 @@ def plot_predictions(table_name, curve, title=None):
     fig = go.Figure()
 
     # Dict with names for the curves
-    names = {'hosp': 'New Hospitalizations', 'ICU_patients': 'Total ICU patients', 
+    names = {'hosp': 'New Hospitalizations', 'icu_patients': 'Total ICU patients', 
              'total_hosp': 'Total hospitalizations'}
 
     if title == None:
@@ -171,7 +171,7 @@ def get_hospCapacity():
     df = df.resample('D').mean()
     df = df.sort_index()
     #df = df.iloc[:-3]
-    return df.Total_Covid19Patients[-2:].astype('int'),df.TotalPercent_Covid19Patients[-2:]
+    return df.total_covid19patients[-2:].astype('int'),df.totalpercent_covid19patients[-2:]
 
 def plot_hosp():
     ''''
@@ -246,7 +246,7 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
         #ydata = get_updated_data(smooth=True)
 
     
-    curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
+    curves = {'hosp': 'hosp', 'icu_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
     ydata = get_canton_data(curves[curve], ['GE'])
     ydata = ydata.resample('D').mean()
     #ydata = ydata.iloc[:-3]
@@ -261,7 +261,7 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
 
     # Dict with names for the curves
     names = {'hosp': 'Forecast New Hospitalizations',
-             'ICU_patients': 'Forecast Total ICU patients', 
+             'icu_patients': 'Forecast Total ICU patients', 
              'total_hosp': 'Total hospitalizations'}
 
     if title == None:
@@ -292,8 +292,8 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
 
 
     column_curves = {'hosp': 'entries',
-                         'ICU_patients': 'ICU_Covid19Patients', 
-                         'total_hosp': 'Total_Covid19Patients'}
+                         'icu_patients': 'icu_covid19patients', 
+                         'total_hosp': 'total_covid19patients'}
 
     min_data = min(ydata.index[-1], df_for.index[0] - timedelta(days=1))
 
@@ -382,7 +382,6 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
 
     # fig.write_image(path)
 
-    del df_for['index']
     df_for.index = pd.to_datetime(df_for.index)
     df_for.index = df_for.index.date
     df_for.reset_index(inplace=True)
@@ -598,7 +597,7 @@ def app():
     #else:
         
     if SEIR_preds:
-        fig_for, df_hosp = plot_forecast('ml_for_hosp_all_cantons', curve='hosp',SEIR_preds = True)
+        fig_for, df_hosp = plot_forecast('ngboost_forecast_hosp_d_results', curve='hosp',SEIR_preds = True)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_hosp.csv'
         download_button_str = download_button(
@@ -607,7 +606,7 @@ def app():
         st.markdown(download_button_str, unsafe_allow_html=True)
         
     else:
-        fig_for, df_hosp = plot_forecast('ml_for_hosp_all_cantons', curve='hosp',SEIR_preds = False)
+        fig_for, df_hosp = plot_forecast('ngboost_forecast_hosp_d_results', curve='hosp',SEIR_preds = False)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_hosp.csv'
         download_button_str = download_button(
@@ -620,20 +619,20 @@ def app():
     SEIR_preds_tot = st.checkbox('SEIR - model', key = 'check_2', value = False )
     
     if SEIR_preds_tot:
-        fig_for, df_icu = plot_forecast('ml_for_total_all_cantons', curve='total_hosp',SEIR_preds = True)
+        fig_for, df_total = plot_forecast('ngboost_forecast_total_hosp_d_results', curve='total_hosp',SEIR_preds = True)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_total_hosp.csv'
         download_button_str = download_button(
-            df_icu, filename, 'Download data', pickle_it=False)
+            df_total, filename, 'Download data', pickle_it=False)
     
         st.markdown(download_button_str, unsafe_allow_html=True)
         
     else:
-        fig_for, df_icu = plot_forecast('ml_for_total_all_cantons', curve='total_hosp',SEIR_preds = False)
+        fig_for, df_total = plot_forecast('ngboost_forecast_total_hosp_d_results', curve='total_hosp',SEIR_preds = False)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_total_hosp.csv'
         download_button_str = download_button(
-            df_icu, filename, 'Download data', pickle_it=False)
+            df_total, filename, 'Download data', pickle_it=False)
     
         st.markdown(download_button_str, unsafe_allow_html=True)
         
@@ -642,7 +641,7 @@ def app():
     SEIR_preds_icu = st.checkbox('SEIR - model', key = 'check_3', value = False )
     
     if SEIR_preds_icu:
-        fig_for, df_icu = plot_forecast('ml_for_icu_all_cantons', curve='ICU_patients',SEIR_preds = True)
+        fig_for, df_icu = plot_forecast('ngboost_forecast_icu_patients_d_results', curve='icu_patients',SEIR_preds = True)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_ICU.csv'
         download_button_str = download_button(
@@ -651,7 +650,7 @@ def app():
         st.markdown(download_button_str, unsafe_allow_html=True)
 
     else:
-        fig_for, df_icu = plot_forecast('ml_for_icu_all_cantons', curve='ICU_patients',SEIR_preds = False)
+        fig_for, df_icu = plot_forecast('ngboost_forecast_icu_patients_d_results', curve='icu_patients',SEIR_preds = False)
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_ICU.csv'
         download_button_str = download_button(
@@ -668,14 +667,14 @@ def app():
              for the machine learning model.  
 
              ''')
-    fig = plot_predictions('ml_val_hosp_all_cantons', curve='hosp')
+    fig = plot_predictions('ngboost_validation_hosp_d_results', curve='hosp')
     st.plotly_chart(fig, use_container_width=True)
     
     st.write('''
              Below, we have the same as above, but for the total hospitalizations.  
 
              ''')
-    fig = plot_predictions('ml_val_total_all_cantons', curve='total_hosp')
+    fig = plot_predictions('ngboost_validation_total_hosp_d_results', curve='total_hosp')
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -683,6 +682,6 @@ def app():
              Below, we have the same as above, but for the ICU occupancy.  
 
              ''')
-    fig = plot_predictions('ml_val_icu_all_cantons', curve='ICU_patients')
+    fig = plot_predictions('ngboost_validation_icu_patients_d_results', curve='icu_patients')
     st.plotly_chart(fig, use_container_width=True)
     
