@@ -489,18 +489,12 @@ def app():
     st.write('### New Hospitalizations')
         
     
-    fig_for, df_hosp = plot_forecast('ngboost_forecast_hosp_d_results', curve='hosp',SEIR_preds = True)
+    fig_for, df_hosp = plot_forecast('ngboost_forecast_hosp_d_results', curve='hosp')
 
     st.plotly_chart(fig_for, use_container_width=True)
     filename = 'forecast_hosp.csv'
     download_button_str = download_button(
                 df_hosp, filename, 'Download data', pickle_it=False)
-    
-    fig_for, df_hosp = plot_forecast('ngboost_forecast_hosp_d_results', curve='hosp')
-    st.plotly_chart(fig_for, use_container_width=True)
-    filename = 'forecast_hosp.csv'
-    download_button_str = download_button(
-        df_hosp, filename, 'Download data', pickle_it=False)
     
     st.markdown(download_button_str, unsafe_allow_html=True)
     
@@ -513,17 +507,7 @@ def app():
         df_total, filename, 'Download data', pickle_it=False)
     
     st.markdown(download_button_str, unsafe_allow_html=True)
-        
 
-    fig_for, df_total = plot_forecast('ngboost_forecast_total_hosp_d_results', curve='total_hosp',SEIR_preds = False)
-
-    st.plotly_chart(fig_for, use_container_width=True)
-    filename = 'forecast_total_hosp.csv'
-    download_button_str = download_button(
-        df_total, filename, 'Download data', pickle_it=False)
-    
-    st.markdown(download_button_str, unsafe_allow_html=True)
-        
     st.write('### Total ICU Hospitalizations')
 
     fig_for, df_icu = plot_forecast('ngboost_forecast_icu_patients_d_results', curve='icu_patients')
@@ -534,8 +518,6 @@ def app():
     
     st.markdown(download_button_str, unsafe_allow_html=True)
         
-        
-
     st.write('''
             ## Model Validation
              In the Figure below, the model's predictions are plotted against data, both *in sample* (for 
