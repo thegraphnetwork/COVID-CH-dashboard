@@ -65,6 +65,7 @@ def plot_cases_canton(full_name_canton, canton):
     
     last_date = df.index[-1]
     df = df['2021-11-01':]
+    
     #df = df.iloc[:-3]
 
     # computing the rolling average

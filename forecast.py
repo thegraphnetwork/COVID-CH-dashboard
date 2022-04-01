@@ -598,6 +598,7 @@ def app():
         
     if SEIR_preds:
         fig_for, df_hosp = plot_forecast('ngboost_forecast_hosp_d_results', curve='hosp',SEIR_preds = True)
+
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_hosp.csv'
         download_button_str = download_button(
@@ -629,6 +630,7 @@ def app():
         
     else:
         fig_for, df_total = plot_forecast('ngboost_forecast_total_hosp_d_results', curve='total_hosp',SEIR_preds = False)
+
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_total_hosp.csv'
         download_button_str = download_button(
@@ -642,6 +644,7 @@ def app():
     
     if SEIR_preds_icu:
         fig_for, df_icu = plot_forecast('ngboost_forecast_icu_patients_d_results', curve='icu_patients',SEIR_preds = True)
+
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_ICU.csv'
         download_button_str = download_button(
@@ -651,6 +654,7 @@ def app():
 
     else:
         fig_for, df_icu = plot_forecast('ngboost_forecast_icu_patients_d_results', curve='icu_patients',SEIR_preds = False)
+
         st.plotly_chart(fig_for, use_container_width=True)
         filename = 'forecast_ICU.csv'
         download_button_str = download_button(
