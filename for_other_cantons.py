@@ -190,8 +190,8 @@ def plot_predictions_canton(table_name, curve, canton, full_name_canton, title=N
     y95 = df_val['upper']
 
     point = target.index[train_size]
-    min_val = min([min(target), np.nanmin(y50)])
-    max_val = max([max(target), np.nanmax(y50)])
+    min_val = min([min(target), np.nanmin(y95)])
+    max_val = max([max(target), np.nanmax(y95)])
 
     point_date = np.where(target.index == '2021-01-01')
 
