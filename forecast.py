@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import io
+from datetime import timedelta 
 from io import BytesIO
 import base64
 import json
@@ -58,15 +59,15 @@ def plot_predictions(table_name, curve, title=None):
     y95 = df_val['upper']
 
     point = target.index[train_size]
-    min_val = min([min(target), np.nanmin(y50)])
-    max_val = max([max(target), np.nanmax(y50)])
+    min_val = min([min(target), np.nanmin(y95)])
+    max_val = max([max(target), np.nanmax(y95)])
 
     point_date = np.where(target.index == '2021-01-01')
 
     fig = go.Figure()
 
     # Dict with names for the curves
-    names = {'hosp': 'New Hospitalizations', 'ICU_patients': 'Total ICU patients', 
+    names = {'hosp': 'New Hospitalizations', 'icu_patients': 'Total ICU patients', 
              'total_hosp': 'Total hospitalizations'}
 
     if title == None:
@@ -131,7 +132,7 @@ def plot_cases():
     
     df = df['2021-11-01':]
     
-    df = df.iloc[:-3]
+    #df = df.iloc[:-3]
 
     # computing the rolling average
     m_movel = df.rolling(7).mean().dropna()
@@ -169,8 +170,8 @@ def get_hospCapacity():
     df = get_curve('hospcapacity', 'GE')
     df = df.resample('D').mean()
     df = df.sort_index()
-    df = df.iloc[:-3]
-    return df.Total_Covid19Patients[-2:].astype('int'),df.TotalPercent_Covid19Patients[-2:]
+    #df = df.iloc[:-3]
+    return df.total_covid19patients[-2:].astype('int'),df.totalpercent_covid19patients[-2:]
 
 def plot_hosp():
     ''''
@@ -185,7 +186,7 @@ def plot_hosp():
     
     df = df['2021-11-01':]
     
-    df = df.iloc[:-3]
+    #df = df.iloc[:-3]
 
     # computing the rolling average
     m_movel = df.rolling(7).mean().dropna()
@@ -220,7 +221,7 @@ def plot_hosp():
     return fig, df.entries[-2:]
 
 
-def plot_forecast(table_name, curve, SEIR_preds, title=None):
+def plot_forecast(table_name, curve, title=None):
     ''''
     Function to plot the forecast 
 
@@ -245,10 +246,10 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
         #ydata = get_updated_data(smooth=True)
 
     
-    curves = {'hosp': 'hosp', 'ICU_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
+    curves = {'hosp': 'hosp', 'icu_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
     ydata = get_canton_data(curves[curve], ['GE'])
     ydata = ydata.resample('D').mean()
-    ydata = ydata.iloc[:-3]
+    #ydata = ydata.iloc[:-3]
     ydata = ydata.rolling(7).mean().dropna()
 
     dates_forecast = df_for.index
@@ -260,7 +261,7 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
 
     # Dict with names for the curves
     names = {'hosp': 'Forecast New Hospitalizations',
-             'ICU_patients': 'Forecast Total ICU patients', 
+             'icu_patients': 'Forecast Total ICU patients', 
              'total_hosp': 'Total hospitalizations'}
 
     if title == None:
@@ -277,97 +278,33 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
         yaxis_title=f'{names[target_curve_name]}',
         template='plotly_white')
 
-    # adding the traces
-    # Data
-
-    #if table_name == 'ml_forecast_hosp_up':
-    #    fig.add_trace(go.Scatter(
-    #        x=ydata.index[-150:], y=ydata.hosp_GE[-150:], name='Data', line=dict(color='black')))
-
-        # Separation between data and forecast
-    #    fig.add_trace(go.Scatter(x=[ydata.index[-1], ydata.index[-1]], y=[min(min(ydata.hosp_GE[-150:]), min(forecast95)), max(
-    #        max(ydata.hosp_GE[-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
-
 
 
     column_curves = {'hosp': 'entries',
-                         'ICU_patients': 'ICU_Covid19Patients', 
-                         'total_hosp': 'Total_Covid19Patients'}
+                         'icu_patients': 'icu_covid19patients', 
+                         'total_hosp': 'total_covid19patients'}
+
+    min_data = min(ydata.index[-1], df_for.index[0] - timedelta(days=1))
 
     fig.add_trace(go.Scatter(
-        x=ydata.index[-150:], y=ydata[column_curves[curve]][-150:], name='Data', line=dict(color='black')))
+        x=ydata.loc[:min_data].index[-150:], y=ydata.loc[:min_data][column_curves[curve]][-150:], name='Data', line=dict(color='black')))
 
-    if SEIR_preds == False:
-        # Separation between data and forecast
-        fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
-        max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
+    # Separation between data and forecast
+    fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
+    max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
 
-        # NGBoost
-        fig.add_trace(go.Scatter(x=dates_forecast, y=forecast50,
+    # NGBoost
+    fig.add_trace(go.Scatter(x=dates_forecast, y=forecast50,
                     name='Forecast NGBoost', line=dict(color='#FF7F0E')))
 
-        fig.add_trace(go.Scatter(x=dates_forecast, y=forecast5, line=dict(
+    fig.add_trace(go.Scatter(x=dates_forecast, y=forecast5, line=dict(
             color='#FF7F0E', width=0), mode='lines',  showlegend=False))
 
-        fig.add_trace(go.Scatter(x=dates_forecast, y=forecast95, line=dict(color='#FF7F0E', width=0),
+    fig.add_trace(go.Scatter(x=dates_forecast, y=forecast95, line=dict(color='#FF7F0E', width=0),
                                 mode='lines',
                                 fillcolor='rgba(255, 127, 14, 0.3)', fill='tonexty', showlegend=False))
         
     
-        
-    if SEIR_preds:
-            
-        df_scen2 = pd.read_sql_table('janne_scenario_2', engine, 
-                                         schema = 'switzerland', 
-                                         columns = ['Date', 'New_hospitalisations', 
-                                                    'Total_hospitalisations',
-                                                    'Total_ICU'])
-            
-        df_scen2.set_index('Date', inplace = True)
-            
-        df_scen2.index = pd.to_datetime(df_scen2.index)
-            
-        df_scen2 = df_scen2.loc[ydata.index[-150]:]
-            
-        df_scen3 = pd.read_sql_table('janne_scenario_3', engine, 
-                                         schema = 'switzerland', 
-                                         columns = ['Date', 'New_hospitalisations', 
-                                                    'Total_hospitalisations',
-                                                    'Total_ICU'])
-            
-        df_scen3.set_index('Date', inplace = True)
-            
-        df_scen3.index = pd.to_datetime(df_scen3.index)
-            
-        df_scen3 = df_scen3.loc[ydata.index[-150]:]
-            
-        df_scen4 = pd.read_sql_table('janne_scenario_4', engine, 
-                                         schema = 'switzerland', 
-                                         columns = ['Date', 'New_hospitalisations', 
-                                         'Total_hospitalisations',
-                                         'Total_ICU'])
-            
-        df_scen4.set_index('Date', inplace = True)
-            
-        df_scen4.index = pd.to_datetime(df_scen4.index)
-            
-        df_scen4 = df_scen4.loc[ydata.index[-150]:]
-            
-        dict_seir = {'hosp': 'New_hospitalisations',
-                         'total_hosp': 'Total_hospitalisations',
-                         'ICU_patients': 'Total_ICU'}
-
-
-        fig.add_trace(go.Scatter(x=df_scen2.index, y= df_scen2[dict_seir[curve]],
-                          name='SEIR - model: Scenario 2', line=dict(color='#D62728', dash = 'dash')))
-            
-        fig.add_trace(go.Scatter(x=df_scen3.index, y= df_scen3[dict_seir[curve]],
-                          name='SEIR - model: Scenario 3', line=dict(color='#2CA02C', dash = 'dash')))
-            
-        fig.add_trace(go.Scatter(x=df_scen4.index, y= df_scen4[dict_seir[curve]],
-                          name='SEIR - model: Scenario 4', line=dict(color='#1F77B4', dash = 'dash')))
-                                                                                
-
     fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline=False,
                      showline=True, linewidth=1, linecolor='black', mirror=True)
 
@@ -379,7 +316,7 @@ def plot_forecast(table_name, curve, SEIR_preds, title=None):
 
     # fig.write_image(path)
 
-    del df_for['index']
+    #del df_for['index']
     df_for.index = pd.to_datetime(df_for.index)
     df_for.index = df_for.index.date
     df_for.reset_index(inplace=True)
@@ -547,117 +484,40 @@ def app():
 
              ''')
              
-    st.write('''
-              ## SEIR model
-              
-              The checkbox `SEIR - model` plots in the graph the predictions
-              of an SEIR model stratified by age (In the graph are the sum of the observations in all ages).
-              This model considers the scenarios below:
-              
-              ##### Scenario 2: Omicron included with the following (overall pessimistic) assumptions:
-              - Omicron will completely take over within one month
-              - Omicron is 2x more infectious and has 50% shorter incubation time than Delta
-              - One or two vaccine doses have no protection against Omicron infection; three doses prevent 50% less cases than for Delta
-              - The risk of severe disease is the same as with Delta
-
-             ##### Scenario 3: Omicron included with the following assumptions (optimistic about infectiousness):
-             - Omicron will completely take over within 1.5 months
-             - Omicron is 1.5x more infectious and has 50% shorter incubation time than Delta
-             - Vaccination prevents 50% less cases than for Delta (regardless of number of doses)
-             - The risk of severe disease is the same as with Delta
-                 
-                 
-             ##### Scenario 4: Omicron included with the following assumptions (optimistic about severe disease):
-             - Omicron will completely take over within one month
-             - Omicron is 2x more infectious and has 50% shorter incubation time than Delta
-             - One or two vaccine doses have no protection against Omicron infection; three doses prevent 50% less cases than for Delta
-             - The risk of severe disease is the same as with Delta
-
-             ''')
              
     st.write('## Forecast results')
     st.write('### New Hospitalizations')
-
-    #select_data = st.checkbox('Updated data', value=False)
-    
-    #if select_data == False:
-    SEIR_preds = st.checkbox('SEIR - model', key = 'check_1', value = False )
-
-    #if select_data:
-    #    fig_for, df_hosp = plot_forecast('ml_forecast_hosp_up',curve = 'hosp',SEIR_preds = False)
-    #    st.plotly_chart(fig_for, use_container_width=True)
-    #    filename = 'forecast_hosp.csv'
-    #    download_button_str = download_button(
-    #        df_hosp, filename, 'Download data', pickle_it=False)
-
-    #    st.markdown(download_button_str, unsafe_allow_html=True)
-
-    #else:
         
-    if SEIR_preds:
-        fig_for, df_hosp = plot_forecast('ml_for_hosp_all_cantons', curve='hosp',SEIR_preds = True)
-        st.plotly_chart(fig_for, use_container_width=True)
-        filename = 'forecast_hosp.csv'
-        download_button_str = download_button(
+    
+    fig_for, df_hosp = plot_forecast('ngboost_forecast_hosp_d_results', curve='hosp')
+
+    st.plotly_chart(fig_for, use_container_width=True)
+    filename = 'forecast_hosp.csv'
+    download_button_str = download_button(
                 df_hosp, filename, 'Download data', pickle_it=False)
     
-        st.markdown(download_button_str, unsafe_allow_html=True)
-        
-    else:
-        fig_for, df_hosp = plot_forecast('ml_for_hosp_all_cantons', curve='hosp',SEIR_preds = False)
-        st.plotly_chart(fig_for, use_container_width=True)
-        filename = 'forecast_hosp.csv'
-        download_button_str = download_button(
-            df_hosp, filename, 'Download data', pickle_it=False)
-    
-        st.markdown(download_button_str, unsafe_allow_html=True)
+    st.markdown(download_button_str, unsafe_allow_html=True)
     
     st.write('### Total Hospitalizations')
 
-    SEIR_preds_tot = st.checkbox('SEIR - model', key = 'check_2', value = False )
+    fig_for, df_total = plot_forecast('ngboost_forecast_total_hosp_d_results', curve='total_hosp')
+    st.plotly_chart(fig_for, use_container_width=True)
+    filename = 'forecast_total_hosp.csv'
+    download_button_str = download_button(
+        df_total, filename, 'Download data', pickle_it=False)
     
-    if SEIR_preds_tot:
-        fig_for, df_icu = plot_forecast('ml_for_total_all_cantons', curve='total_hosp',SEIR_preds = True)
-        st.plotly_chart(fig_for, use_container_width=True)
-        filename = 'forecast_total_hosp.csv'
-        download_button_str = download_button(
-            df_icu, filename, 'Download data', pickle_it=False)
-    
-        st.markdown(download_button_str, unsafe_allow_html=True)
-        
-    else:
-        fig_for, df_icu = plot_forecast('ml_for_total_all_cantons', curve='total_hosp',SEIR_preds = False)
-        st.plotly_chart(fig_for, use_container_width=True)
-        filename = 'forecast_total_hosp.csv'
-        download_button_str = download_button(
-            df_icu, filename, 'Download data', pickle_it=False)
-    
-        st.markdown(download_button_str, unsafe_allow_html=True)
-        
+    st.markdown(download_button_str, unsafe_allow_html=True)
+
     st.write('### Total ICU Hospitalizations')
 
-    SEIR_preds_icu = st.checkbox('SEIR - model', key = 'check_3', value = False )
-    
-    if SEIR_preds_icu:
-        fig_for, df_icu = plot_forecast('ml_for_icu_all_cantons', curve='ICU_patients',SEIR_preds = True)
-        st.plotly_chart(fig_for, use_container_width=True)
-        filename = 'forecast_ICU.csv'
-        download_button_str = download_button(
+    fig_for, df_icu = plot_forecast('ngboost_forecast_icu_patients_d_results', curve='icu_patients')
+    st.plotly_chart(fig_for, use_container_width=True)
+    filename = 'forecast_ICU.csv'
+    download_button_str = download_button(
             df_icu, filename, 'Download data', pickle_it=False)
     
-        st.markdown(download_button_str, unsafe_allow_html=True)
-
-    else:
-        fig_for, df_icu = plot_forecast('ml_for_icu_all_cantons', curve='ICU_patients',SEIR_preds = False)
-        st.plotly_chart(fig_for, use_container_width=True)
-        filename = 'forecast_ICU.csv'
-        download_button_str = download_button(
-            df_icu, filename, 'Download data', pickle_it=False)
-    
-        st.markdown(download_button_str, unsafe_allow_html=True)
+    st.markdown(download_button_str, unsafe_allow_html=True)
         
-        
-
     st.write('''
             ## Model Validation
              In the Figure below, the model's predictions are plotted against data, both *in sample* (for 
@@ -665,14 +525,14 @@ def app():
              for the machine learning model.  
 
              ''')
-    fig = plot_predictions('ml_val_hosp_all_cantons', curve='hosp')
+    fig = plot_predictions('ngboost_validation_hosp_d_results', curve='hosp')
     st.plotly_chart(fig, use_container_width=True)
     
     st.write('''
              Below, we have the same as above, but for the total hospitalizations.  
 
              ''')
-    fig = plot_predictions('ml_val_total_all_cantons', curve='total_hosp')
+    fig = plot_predictions('ngboost_validation_total_hosp_d_results', curve='total_hosp')
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -680,6 +540,6 @@ def app():
              Below, we have the same as above, but for the ICU occupancy.  
 
              ''')
-    fig = plot_predictions('ml_val_icu_all_cantons', curve='ICU_patients')
+    fig = plot_predictions('ngboost_validation_icu_patients_d_results', curve='icu_patients')
     st.plotly_chart(fig, use_container_width=True)
     

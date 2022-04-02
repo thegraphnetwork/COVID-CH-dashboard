@@ -25,7 +25,7 @@ def get_curve_all(curve):
     Function to return the cases or hosp for all the switzerland
     '''
     
-    df2 = pd.read_sql(f"select datum, sum(entries) from switzerland.foph_{curve} group by datum;", engine_public)
+    df2 = pd.read_sql(f"select datum, sum(entries) from switzerland.foph_{curve}_d group by datum;", engine_public)
     df2.index = pd.to_datetime(df2.datum)
     df2 = df2.rename(columns={'sum': 'entries'})
     df2.sort_index(inplace = True)
@@ -38,14 +38,14 @@ def get_curve(curve, canton):
     Function to get the cases and hosp data in the database
     '''
     
-    dict_columns = {'cases':'datum, entries, \"geoRegion\"',
-                    'hosp':'datum, entries, \"geoRegion\"',
-                    'hospcapacity': 'date, \"ICU_Covid19Patients\", \"geoRegion\",\"Total_Covid19Patients\",\"TotalPercent_Covid19Patients\"'}
+    dict_columns = {'cases':'datum, entries, georegion',
+                    'hosp':'datum, entries, georegion',
+                    'hospcapacity': 'date, icu_covid19patients, georegion,total_covid19patients, totalpercent_covid19patients'}
     
     dict_dates = {'cases': 'datum', 'hosp': 'datum', 
                   'hospcapacity': 'date'}
     
-    df = pd.read_sql(f"select {dict_columns[curve]} from switzerland.foph_{curve} where \"geoRegion\"='{canton}';", engine_public)
+    df = pd.read_sql(f"select {dict_columns[curve]} from switzerland.foph_{curve}_d where georegion='{canton}';", engine_public)
     
     df.index = pd.to_datetime(df[dict_dates[curve]])
     
@@ -104,11 +104,11 @@ def compute_clusters(curve, t, plot=False):
     -> all_regions: is the array with all the regions
     '''
 
-    df = pd.read_sql_table(f'foph_{curve}', engine_public, schema = 'switzerland', columns = ['datum','geoRegion',  'entries'])
+    df = pd.read_sql_table(f'foph_{curve}_d', engine_public, schema = 'switzerland', columns = ['datum','georegion',  'entries'])
     
     df.index = pd.to_datetime(df.datum)
 
-    inc_canton = df.pivot(columns='geoRegion', values='entries')
+    inc_canton = df.pivot(columns='georegion', values='entries')
 
     # changin the data
     # print(inc_canton)
@@ -143,7 +143,7 @@ def compute_clusters(curve, t, plot=False):
         0)  # preciso entender melhor essa linha do código
     clusters = [group[1][1].values for group in grouped]
 
-    all_regions = df.geoRegion.unique()
+    all_regions = df.georegion.unique()
 
     return clusters, all_regions, fig
     
@@ -154,27 +154,27 @@ def get_canton_data(curve, canton, ini_date=None):
     This function provide a dataframe for the curve selected in the param curve and
     the canton selected in the param canton
 
-    param curve: strin. One of the following options are accepted: ['cases', 'casesVaccPersons', 'covidCertificates', 'death',
-                                                             'deathVaccPersons', 'hosp', 'hospCapacity', 'hospVaccPersons',
-                                                             'intCases', 're', 'test', 'testPcrAntigen', 'virusVariantsWgs']
+    param curve: string. One of the following options are accepted: ['cases', 'casesvaccpersons', 'covidcertificates', 'death',
+                                                             'deathvaccpersons', 'hosp', 'hospcapacity', 'hospvaccpersons',
+                                                             'intcases', 're', 'test', 'testpcrantigen', 'virusvariantswgs']
     param canton: array with all the cantons of interest.
 
     return dataframe
     '''
     
     # dictionary with the columns that will be used for each curve. 
-    dict_cols = {'cases': ['geoRegion', 'datum', 'entries'], 
-                 'test': ['geoRegion', 'datum', 'entries', 'entries_pos'],
-                 'hosp': ['geoRegion', 'datum', 'entries'], 
-                 'hospcapacity': ['geoRegion', 'date', 'ICU_Covid19Patients','Total_Covid19Patients' ],
-                 're': ['geoRegion', 'date', 'median_R_mean']
+    dict_cols = {'cases': ['georegion', 'datum', 'entries'], 
+                 'test': ['georegion', 'datum', 'entries', 'entries_pos'],
+                 'hosp': ['georegion', 'datum', 'entries'], 
+                 'hospcapacity': ['georegion', 'date', 'icu_covid19patients','total_covid19patients' ],
+                 're': ['georegion', 'date', 'median_r_mean']
                  }
 
     # getting the data from the databank
-    df = pd.read_sql_table(f'foph_{curve}', engine_public, schema = 'switzerland', columns = dict_cols[curve])
+    df = pd.read_sql_table(f'foph_{curve}_d', engine_public, schema = 'switzerland', columns = dict_cols[curve])
 
     # filtering by cantons
-    df = df.loc[(df.geoRegion.isin(canton))]
+    df = df.loc[(df.georegion.isin(canton))]
 
     if (curve == 're') | (curve == 'hospcapacity'):
         df.index = pd.to_datetime(df.date)
