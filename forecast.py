@@ -28,10 +28,15 @@ engine = create_engine(
     "postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
 
 
+def hex_to_rgb(hex_color: str) -> tuple:
+    hex_color = hex_color.lstrip("#")
+    if len(hex_color) == 3:
+        hex_color = hex_color * 2
+    return int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
 
 
 
-def plot_predictions(table_name, curve, title=None):
+def plot_predictions(curve,model_name, color ='#FF7F0E', title=None):
     ''''
     Function to plot the predictions
 
@@ -42,14 +47,15 @@ def plot_predictions(table_name, curve, title=None):
 
     return plotly figure
     '''
-    target_curve_name = curve
+
+    table_name = f'validation_{model_name.lower()}_{curve}_d_results'
 
     canton = 'GE'
 
     df_val = pd.read_sql_table(
         table_name, engine, schema='switzerland', index_col='date')
 
-    df_val  = df_val.loc[df_val.canton == canton]
+    df_val  = df_val.loc[df_val.canton.str[-2:] == canton]
 
     target = df_val['target']
     train_size = df_val['train_size'].values[0]
@@ -81,7 +87,7 @@ def plot_predictions(table_name, curve, title=None):
         'xanchor': 'center',
         'yanchor': 'top'},
         xaxis_title='Date',
-        yaxis_title=f'{names[target_curve_name]}',
+        yaxis_title=f'{names[curve]}',
         template='plotly_white')
 
     # adding the traces
@@ -98,15 +104,15 @@ def plot_predictions(table_name, curve, title=None):
     # fig.add_trace(go.Scatter(x=[target.index[-1], target.index[-1]], y=[min_val,max_val], name="Forecast", mode = 'lines',line=dict(color = '#FB0D0D', dash = 'dash')))
 
     # NGBoost predictions
-    fig.add_trace(go.Scatter(x=x, y=y50, name='NGBoost',
-                  line=dict(color='#FF7F0E')))
+    fig.add_trace(go.Scatter(x=x, y=y50, name=f'{model_name}',
+                  line=dict(color= color)))
 
     fig.add_trace(go.Scatter(x=x, y=y5, line=dict(
-        color='#FF7F0E', width=0), showlegend=False))
+        color = color, width=0), showlegend=False))
 
-    fig.add_trace(go.Scatter(x=x, y=y95, line=dict(color='#FF7F0E', width=0),
+    fig.add_trace(go.Scatter(x=x, y=y95, line=dict(color=color, width=0),
                              mode='lines',
-                             fillcolor='rgba(255, 127, 14, 0.3)', fill='tonexty', showlegend=False))
+                             fillcolor = f'rgba{(*hex_to_rgb(color), 0.3)}', fill='tonexty', showlegend=False))
 
     fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline=False,
                      showline=True, linewidth=1, linecolor='black', mirror=True)
@@ -221,7 +227,88 @@ def plot_hosp():
     return fig, df.entries[-2:]
 
 
-def plot_forecast(table_name, curve, title=None):
+def plot_comp_forecast(curve):
+    ''''
+    Function to plot the forecast 
+
+    params curve: Curve related with the predictions that will be plotted
+
+    return[0] plotly figure
+    return[1] dataframe with the values forecasted 
+
+    '''
+
+    canton = 'GE'
+
+    df_for_1 = pd.read_sql(
+        f"select * from switzerland.forecast_ngboost_{curve}_d_results where canton='{canton}';", engine)
+    
+    df_for_2 = pd.read_sql(
+        f"select * from switzerland.forecast_lstm_{curve}_d_results where canton='{canton}';", engine)
+
+
+    
+    curves = {'hosp': 'hosp', 'icu_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
+    ydata = get_canton_data(curves[curve], ['GE'])
+    ydata = ydata.resample('D').mean()
+    #ydata = ydata.iloc[:-3]
+    ydata = ydata.rolling(7).mean().dropna()
+
+    fig = go.Figure()
+
+    # Dict with names for the curves
+    names = {'hosp': 'Forecast New Hospitalizations',
+             'icu_patients': 'Forecast Total ICU patients', 
+             'total_hosp': 'Total hospitalizations'}
+
+
+    title = f"Comparation between the models - {canton}"
+
+    fig.update_layout(width=900, height=500, title={
+        'text': title,
+        'y': 0.87,
+        'x': 0.42,
+        'xanchor': 'center',
+        'yanchor': 'top'},
+        xaxis_title='Date',
+        yaxis_title=f'{names[curve]}',
+        template='plotly_white')
+
+
+
+    column_curves = {'hosp': 'entries',
+                         'icu_patients': 'icu_covid19patients', 
+                         'total_hosp': 'total_covid19patients'}
+
+    min_data = min(ydata.index[-1], df_for_1.index[0] - timedelta(days=1))
+
+    fig.add_trace(go.Scatter(
+        x=ydata.loc[:min_data].index[-150:], y=ydata.loc[:min_data][column_curves[curve]][-150:], name='Data', line=dict(color='black')))
+
+    # Separation between data and forecast
+    fig.add_trace(go.Scatter(x=[df_for_1.index[0], df_for_1.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(df_for_1['lower']), min(df_for_2['lower'])), max(
+    max(ydata[column_curves[curve]][-150:]), max(df_for_1['upper']), max(df_for_2['upper']))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
+
+    # NGBoost
+    fig.add_trace(go.Scatter(x=df_for_1.index, y=df_for_1['median'],
+                    name=f'NGBoost', line=dict(color='#FF7F0E')))
+
+    # LSTM
+    fig.add_trace(go.Scatter(x=df_for_2.index, y=df_for_2['median'],
+                    name=f'LSTM', line=dict(color='#2CA02C')))
+
+    
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline=False,
+                     showline=True, linewidth=1, linecolor='black', mirror=True)
+
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline=False,
+                     showline=True, linewidth=1, linecolor='black', mirror=True)
+
+
+    return fig
+
+
+def plot_forecast(curve, model_name, color ='#FF7F0E',  title=None):
     ''''
     Function to plot the forecast 
 
@@ -234,13 +321,16 @@ def plot_forecast(table_name, curve, title=None):
     return[1] dataframe with the values forecasted 
 
     '''
-    target_curve_name = curve
+
+    table_name = f'forecast_{model_name.lower()}_{curve}_d_results'
+
     canton = 'GE'
+
 
     df_for = pd.read_sql_table(
         table_name, engine, schema='switzerland', index_col='date')
     
-    df_for  = df_for.loc[df_for.canton == canton]
+    df_for  = df_for.loc[df_for.canton.str[-2:] == canton]
 
     #if table_name == 'ml_forecast_hosp_up':
         #ydata = get_updated_data(smooth=True)
@@ -275,7 +365,7 @@ def plot_forecast(table_name, curve, title=None):
         'xanchor': 'center',
         'yanchor': 'top'},
         xaxis_title='Date',
-        yaxis_title=f'{names[target_curve_name]}',
+        yaxis_title=f'{names[curve]}',
         template='plotly_white')
 
 
@@ -295,14 +385,14 @@ def plot_forecast(table_name, curve, title=None):
 
     # NGBoost
     fig.add_trace(go.Scatter(x=dates_forecast, y=forecast50,
-                    name='Forecast NGBoost', line=dict(color='#FF7F0E')))
+                    name=f'Forecast {model_name}', line=dict(color= color)))
 
     fig.add_trace(go.Scatter(x=dates_forecast, y=forecast5, line=dict(
-            color='#FF7F0E', width=0), mode='lines',  showlegend=False))
+            color=color, width=0), mode='lines',  showlegend=False))
 
-    fig.add_trace(go.Scatter(x=dates_forecast, y=forecast95, line=dict(color='#FF7F0E', width=0),
+    fig.add_trace(go.Scatter(x=dates_forecast, y=forecast95, line=dict(color = color, width=0),
                                 mode='lines',
-                                fillcolor='rgba(255, 127, 14, 0.3)', fill='tonexty', showlegend=False))
+                                fillcolor= f'rgba{(*hex_to_rgb(color), 0.3)}', fill='tonexty', showlegend=False))
         
     
     fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray', zeroline=False,
@@ -489,7 +579,7 @@ def app():
     st.write('### New Hospitalizations')
         
     
-    fig_for, df_hosp = plot_forecast('ngboost_forecast_hosp_d_results', curve='hosp')
+    fig_for, df_hosp = plot_forecast( curve='hosp', model_name = 'NGBoost')
 
     st.plotly_chart(fig_for, use_container_width=True)
     filename = 'forecast_hosp.csv'
@@ -497,10 +587,23 @@ def app():
                 df_hosp, filename, 'Download data', pickle_it=False)
     
     st.markdown(download_button_str, unsafe_allow_html=True)
+
+    fig_for, df_hosp = plot_forecast( curve='hosp', model_name = 'LSTM', color = '#2CA02C')
+
+    st.plotly_chart(fig_for, use_container_width=True)
+    filename = 'forecast_hosp.csv'
+    download_button_str = download_button(
+                df_hosp, filename, 'Download data', pickle_it=False)
+    
+    st.markdown(download_button_str, unsafe_allow_html=True)
+
+    fig_comp = plot_comp_forecast('hosp')
+
+    st.plotly_chart(fig_comp, use_container_width=True)
     
     st.write('### Total Hospitalizations')
 
-    fig_for, df_total = plot_forecast('ngboost_forecast_total_hosp_d_results', curve='total_hosp')
+    fig_for, df_total = plot_forecast( curve='total_hosp', model_name = 'NGBoost')
     st.plotly_chart(fig_for, use_container_width=True)
     filename = 'forecast_total_hosp.csv'
     download_button_str = download_button(
@@ -508,15 +611,44 @@ def app():
     
     st.markdown(download_button_str, unsafe_allow_html=True)
 
+
+    fig_for, df_hosp = plot_forecast( curve='total_hosp', model_name = 'LSTM', color = '#2CA02C')
+
+    st.plotly_chart(fig_for, use_container_width=True)
+    filename = 'forecast_total_hosp.csv'
+    download_button_str = download_button(
+                df_hosp, filename, 'Download data', pickle_it=False)
+    
+    st.markdown(download_button_str, unsafe_allow_html=True)
+
+    fig_comp = plot_comp_forecast('total_hosp')
+
+    st.plotly_chart(fig_comp, use_container_width=True)
+
+
     st.write('### Total ICU Hospitalizations')
 
-    fig_for, df_icu = plot_forecast('ngboost_forecast_icu_patients_d_results', curve='icu_patients')
+    fig_for, df_icu = plot_forecast( curve='icu_patients', model_name = 'NGBoost')
     st.plotly_chart(fig_for, use_container_width=True)
     filename = 'forecast_ICU.csv'
     download_button_str = download_button(
             df_icu, filename, 'Download data', pickle_it=False)
     
     st.markdown(download_button_str, unsafe_allow_html=True)
+
+    fig_for, df_hosp = plot_forecast( curve='icu_patients', model_name = 'LSTM',  color = '#2CA02C')
+
+    st.plotly_chart(fig_for, use_container_width=True)
+    filename = 'forecast_ICU.csv'
+    download_button_str = download_button(
+                df_hosp, filename, 'Download data', pickle_it=False)
+    
+    st.markdown(download_button_str, unsafe_allow_html=True)
+
+    fig_comp = plot_comp_forecast('icu_patients')
+
+    st.plotly_chart(fig_comp, use_container_width=True)
+
         
     st.write('''
             ## Model Validation
@@ -525,21 +657,29 @@ def app():
              for the machine learning model.  
 
              ''')
-    fig = plot_predictions('ngboost_validation_hosp_d_results', curve='hosp')
+    fig = plot_predictions( curve='hosp', model_name = 'NGBoost')
+    st.plotly_chart(fig, use_container_width=True)
+
+    fig = plot_predictions( curve='hosp', model_name = 'LSTM',  color = '#2CA02C')
     st.plotly_chart(fig, use_container_width=True)
     
     st.write('''
              Below, we have the same as above, but for the total hospitalizations.  
 
              ''')
-    fig = plot_predictions('ngboost_validation_total_hosp_d_results', curve='total_hosp')
+
+    fig = plot_predictions( curve='total_hosp', model_name = 'NGBoost')
     st.plotly_chart(fig, use_container_width=True)
 
+    fig = plot_predictions( curve='total_hosp', model_name = 'LSTM',  color = '#2CA02C')
+    st.plotly_chart(fig, use_container_width=True)
 
     st.write('''
              Below, we have the same as above, but for the ICU occupancy.  
 
              ''')
-    fig = plot_predictions('ngboost_validation_icu_patients_d_results', curve='icu_patients')
+    fig = plot_predictions( curve='icu_patients', model_name = 'NGBoost')
     st.plotly_chart(fig, use_container_width=True)
-    
+
+    fig = plot_predictions( curve='icu_patients', model_name = 'LSTM', color = '#2CA02C')
+    st.plotly_chart(fig, use_container_width=True)
