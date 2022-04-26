@@ -362,7 +362,12 @@ def plot_comp_forecast(curve, canton, full_name_canton):
     df_for_2 = pd.read_sql(
         f"select * from switzerland.forecast_lstm_{curve}_d_results where canton='{canton}';", engine)
     
-  
+    df_for_1.set_index('date', inplace = True)
+    df_for_1.index = pd.to_datetime(df_for_1.index)
+
+    df_for_2.set_index('date', inplace = True)
+    df_for_2.index = pd.to_datetime(df_for_2.index)
+    
     curves = {'hosp': 'hosp', 'icu_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
     ydata = get_curve(curves[curve], canton)
     ydata = ydata.resample('D').mean()

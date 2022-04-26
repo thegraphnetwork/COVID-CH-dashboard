@@ -246,7 +246,11 @@ def plot_comp_forecast(curve):
     df_for_2 = pd.read_sql(
         f"select * from switzerland.forecast_lstm_{curve}_d_results where canton='{canton}';", engine)
 
+    df_for_1.set_index('date', inplace = True)
+    df_for_1.index = pd.to_datetime(df_for_1.index)
 
+    df_for_2.set_index('date', inplace = True)
+    df_for_2.index = pd.to_datetime(df_for_2.index)
     
     curves = {'hosp': 'hosp', 'icu_patients': 'hospcapacity', 'total_hosp': 'hospcapacity'}
     ydata = get_canton_data(curves[curve], ['GE'])
@@ -380,7 +384,7 @@ def plot_forecast(curve, model_name, color ='#FF7F0E',  title=None):
         x=ydata.loc[:min_data].index[-150:], y=ydata.loc[:min_data][column_curves[curve]][-150:], name='Data', line=dict(color='black')))
 
     # Separation between data and forecast
-    fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast95)), max(
+    fig.add_trace(go.Scatter(x=[df_for.index[0], df_for.index[0]], y=[min(min(ydata[column_curves[curve]][-150:]), min(forecast5)), max(
     max(ydata[column_curves[curve]][-150:]), max(forecast95))], name="Data/Forecast", mode='lines', line=dict(color='#FB0D0D', dash='dash')))
 
     # NGBoost
@@ -548,12 +552,14 @@ def app():
     st.write('''
              To forecast the daily hospitalizations, total hospitalizations, and total ICU hospitalizations
              in canton Geneva, it was used a Gradient Boosting Machine that returns
-             probabilistic predictions implemented in the python package `NGBoost`.
+             probabilistic predictions implemented in the python package `NGBoost` and a Neural Network model using 
+             LSTM (Long short-term memory) implemented in the python package `tensorflow`.
              
-             In the model, we use as predictors the series of cases, hospitalizations,
-             tests and ICU occupations from all the cantons belonging to the same cluster
-             of the one we are forecasting for, as well as total vaccinations per hundred thousand in 
-             Switzerland. The regression, in somewhat compact notation, is defined as  ''')
+             In both methodologies, we use as predictors the series of cases, hospitalizations,
+             tests and ICU occupations from the canton, as well as total vaccinations per hundred thousand in 
+             Switzerland. 
+             
+             For the machine learning model, the regression, in somewhat compact notation, is defined as  ''')
 
     st.latex(r'''
              H_{k,t} \sim C_{k,t-\tau_i} + H_{k,t-\tau_i} +V_{k,t-\tau_i} + ICU_{k,t-\tau_i},
@@ -566,6 +572,13 @@ def app():
              next 14 days. For each of these 14 days, one model is trained. The regression for the 
              total hospitalizations and total ICU hospitalizations follows the same format defined above.
              ''')
+
+    st.write('''
+            For the neural network model, we use a LSTM model with 3 sequential layers. The first and last layers are LSTM 
+            layers and the second is a bidirectional LSTM (BI-LSTM) layer. For all the layers was used **8** hidden units 
+            and each layer was separated by each other by a dropout layer. The dropout layers was used to compute the confidence 
+            interval of our predictions. We used the last 14 days to predict the next 14 days.
+            ''')
 
     st.write('''
     ## 14-day Forecasts
