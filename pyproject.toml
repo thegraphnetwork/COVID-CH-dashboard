@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "covid-ch-dashboard"
+version = "0.1.0"
+description = "Dashboard with analysis of covid-19 data from foph in Switzerland"
+authors = ["Eduardo Correa Araujo <eduardocorreaaraujo8@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
