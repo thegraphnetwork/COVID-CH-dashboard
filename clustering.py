@@ -8,7 +8,7 @@ Created on Tue Dec 21 14:58:03 2021
 
 import streamlit as st 
 from get_data import compute_clusters
-from geoanalysis import correlation_map
+from geoanalysis import correlation_map, correlation_map_bokeh
 
 
 def app():
@@ -44,5 +44,8 @@ def app():
     curve = st.selectbox("On which series you want to base the correlation on?",
                 ('cases', 'hospitalizations') 
     )
-    figmap = correlation_map(curve=curve)
-    st.pyplot(figmap)
+    #figmap = correlation_map(curve=curve)
+    #st.pyplot(figmap)
+    
+    figmap_bokeh = correlation_map_bokeh(curve=curve)
+    st.bokeh_chart(figmap_bokeh)

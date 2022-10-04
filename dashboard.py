@@ -6,8 +6,6 @@ Created on Sat Dec 18 20:40:33 2021
 """
 
 import streamlit as st
-import bayesian_inference
-import SIR_forecast
 import forecast
 import for_other_cantons 
 import credits
