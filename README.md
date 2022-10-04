@@ -13,8 +13,12 @@ $ streamlit run dashboard.py --server.port 8502
 * Docker installed and running
 * docker-compose installed
 
+It also works fine with podman and [podman-compose].(https://phoenixnap.com/kb/podman-compose#ftoc-heading-3)
+
 ```bash
 $ docker-compose up
+# or 
+$ podman-compose up
 
 # When dependencies change and you need to force a rebuild
 $ docker-compose up --build

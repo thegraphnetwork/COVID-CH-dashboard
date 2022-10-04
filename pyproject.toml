@@ -6,6 +6,8 @@ authors = ["Eduardo Correa Araujo <eduardocorreaaraujo8@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+matplotlib = "^3.6.0"
+arviz = "^0.12.1"
 
 [tool.poetry.dev-dependencies]
 

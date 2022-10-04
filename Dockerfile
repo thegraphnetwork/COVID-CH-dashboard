@@ -7,6 +7,7 @@ WORKDIR /app
 # Copy data, app and dependencies
 COPY ./dashboard.py ./dashboard.py
 COPY ./pyproject.toml ./pyproject.toml
+COPY ./poetry.lock ./poetry.lock
 
 # Install dependencies
 RUN poetry install
