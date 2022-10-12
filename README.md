@@ -16,13 +16,15 @@ $ streamlit run dashboard.py --server.port 8502
 It also works fine with podman and [podman-compose].(https://phoenixnap.com/kb/podman-compose#ftoc-heading-3)
 
 ```bash
-$ docker-compose up
+$ docker-compose -f docker/docker-compose.yml up
 # or 
-$ podman-compose up
+$ podman-compose -f docker/docker-compose.yml up
 
 # When dependencies change and you need to force a rebuild
-$ docker-compose up --build
+$ docker-compose -f docker/docker-compose.yml up --build
 
 # When finished
 $ docker-compose down
 ```
+
+You can see the app running at http://localhost:8501

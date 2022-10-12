@@ -7,12 +7,12 @@ authors = ["Eduardo Correa Araujo <eduardocorreaaraujo8@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9, !=3.9.7"
 matplotlib = "^3.6.0"
-arviz = "^0.12.1"
 streamlit = "^1.13.0"
 seaborn = "^0.12.0"
 plotly = "^5.10.0"
 bokeh = "^2.4.3"
-geopandas = "^0.11.1"
+SQLAlchemy = "^1.4.41"
+docker-compose = "^1.29.2"
 
 [tool.poetry.dev-dependencies]
 
