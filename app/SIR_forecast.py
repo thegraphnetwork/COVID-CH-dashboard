@@ -17,7 +17,11 @@ from PIL import Image
 import matplotlib.pyplot as plt 
 from get_data import get_canton_data 
 from sqlalchemy import create_engine
-engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
+import os
+from dotenv import load_dotenv
+load_dotenv('../.env')
+
+engine = create_engine(f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}')
 
 
 def make_inference_sir():

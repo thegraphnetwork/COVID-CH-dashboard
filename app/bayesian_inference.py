@@ -6,14 +6,19 @@ Created on Sat Dec 18 22:31:57 2021
 @author: eduardoaraujo
 """
 #import arviz as az
+
 import plotly.graph_objects as go
 import pandas as pd 
 import streamlit as st 
 from PIL import Image
 from get_data import get_canton_data 
 from sqlalchemy import create_engine
+import os
+from dotenv import load_dotenv
+load_dotenv('../.env')
 
-engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
+engine = create_engine(f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}')
+
 
 
 

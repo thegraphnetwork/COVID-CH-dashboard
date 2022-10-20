@@ -4,6 +4,11 @@ services:
     build:
       context: ".."
       dockerfile: docker/Dockerfile
+    env_file:
+      - ../.env
+    #environment:
+    #  - PSQL_HOST=${PSQL_HOST}
+    #  - PSQL_PORT=${PSQL_PORT}
     ports:
       - "8501:8501"
     volumes:

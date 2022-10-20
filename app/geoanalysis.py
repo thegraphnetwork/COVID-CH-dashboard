@@ -6,14 +6,14 @@ from bokeh.models import (ColorBar,
 from bokeh.palettes import brewer
 from bokeh.plotting import figure
 
-from get_data import get_ch_map, lag_ccf, engine_public
+from get_data import get_ch_map, lag_ccf, engine
 
 def correlation_map(curve='cases'):
     if curve == 'hospitalizations':
         curve = 'hosp'
     chmap = get_ch_map()
     
-    df = pd.read_sql_table(f'foph_{curve}', engine_public, schema = 'switzerland', columns = ['datum','geoRegion',  'entries'])
+    df = pd.read_sql_table(f'foph_{curve}', engine, schema = 'switzerland', columns = ['datum','geoRegion',  'entries'])
     df.index = pd.to_datetime(df.datum)
     inc_canton = df.pivot(columns='geoRegion', values='entries')
     del inc_canton['CHFL']
@@ -37,7 +37,7 @@ def correlation_map_bokeh(curve='cases'):
         curve = 'hosp'
     chmap = get_ch_map()
     
-    df = pd.read_sql_table(f'foph_{curve}', engine_public, schema = 'switzerland', columns = ['datum','geoRegion',  'entries'])
+    df = pd.read_sql_table(f'foph_{curve}', engine, schema = 'switzerland', columns = ['datum','geoRegion',  'entries'])
     df.index = pd.to_datetime(df.datum)
     inc_canton = df.pivot(columns='geoRegion', values='entries')
     del inc_canton['CHFL']

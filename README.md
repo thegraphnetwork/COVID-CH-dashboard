@@ -28,3 +28,6 @@ $ docker-compose down
 ```
 
 You can see the app running at http://localhost:8501
+
+
+docker-compose -f docker/docker-compose.yaml --env-file .env build

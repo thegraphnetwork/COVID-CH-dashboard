@@ -14,9 +14,11 @@ from scipy.signal import correlate, correlation_lags
 import scipy.cluster.hierarchy as hcluster
 from sqlalchemy import create_engine
 import matplotlib.pyplot as plt
-#import streamlit as st
+import os
+from dotenv import load_dotenv
+load_dotenv('../.env')
 
-engine_public = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
+engine = create_engine(f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}')
 
 
 def get_curve_all(curve):
@@ -25,7 +27,7 @@ def get_curve_all(curve):
     Function to return the cases or hosp for all the switzerland
     '''
     
-    df2 = pd.read_sql(f"select datum, sum(entries) from switzerland.foph_{curve}_d group by datum;", engine_public)
+    df2 = pd.read_sql(f"select datum, sum(entries) from switzerland.foph_{curve}_d group by datum;", engine)
     df2.index = pd.to_datetime(df2.datum)
     df2 = df2.rename(columns={'sum': 'entries'})
     df2.sort_index(inplace = True)
@@ -45,7 +47,7 @@ def get_curve(curve, canton):
     dict_dates = {'cases': 'datum', 'hosp': 'datum', 
                   'hospcapacity': 'date'}
     
-    df = pd.read_sql(f"select {dict_columns[curve]} from switzerland.foph_{curve}_d where georegion='{canton}';", engine_public)
+    df = pd.read_sql(f"select {dict_columns[curve]} from switzerland.foph_{curve}_d where georegion='{canton}';", engine)
     
     df.index = pd.to_datetime(df[dict_dates[curve]])
     
@@ -104,7 +106,7 @@ def compute_clusters(curve, t, plot=False):
     -> all_regions: is the array with all the regions
     '''
 
-    df = pd.read_sql_table(f'foph_{curve}_d', engine_public, schema = 'switzerland', columns = ['datum','georegion',  'entries'])
+    df = pd.read_sql_table(f'foph_{curve}_d', engine, schema = 'switzerland', columns = ['datum','georegion',  'entries'])
     
     df.index = pd.to_datetime(df.datum)
 
@@ -171,7 +173,7 @@ def get_canton_data(curve, canton, ini_date=None):
                  }
 
     # getting the data from the databank
-    df = pd.read_sql_table(f'foph_{curve}_d', engine_public, schema = 'switzerland', columns = dict_cols[curve])
+    df = pd.read_sql_table(f'foph_{curve}_d', engine, schema = 'switzerland', columns = dict_cols[curve])
 
     # filtering by cantons
     df = df.loc[(df.georegion.isin(canton))]
@@ -190,6 +192,6 @@ def get_canton_data(curve, canton, ini_date=None):
 
 def get_ch_map():
     chmap = gpd.read_postgis("select * from switzerland.map_cantons;", 
-                    con=engine_public, geom_col="geometry")
+                    con=engine, geom_col="geometry")
     chmap['geoRegion'] = chmap.HASC_1.transform(lambda x: x.split('.')[-1])
     return chmap
