@@ -9,4 +9,6 @@ dependencies:
   - arviz
   - geopandas
   - psycopg2
+  - statsmodels
+  - openpyxl
     

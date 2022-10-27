@@ -17,11 +17,8 @@ from PIL import Image
 import matplotlib.pyplot as plt 
 from get_data import get_canton_data 
 from sqlalchemy import create_engine
-import os
-from dotenv import load_dotenv
-load_dotenv('../.env')
-
-engine = create_engine(f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}')
+import config as conf
+engine = create_engine(f'postgresql://{conf.POSTGRES_USER}:{conf.POSTGRES_PASSWORD}@{conf.POSTGRES_HOST}:{conf.POSTGRES_PORT}/{conf.POSTGRES_DB}')
 
 
 def make_inference_sir():
