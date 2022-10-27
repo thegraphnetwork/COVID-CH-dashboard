@@ -14,8 +14,8 @@ from forecast import download_button
 from get_data import get_curve
 from sqlalchemy import create_engine
 from plots import scatter_plot_cases_hosp_all
-import config as conf
-engine = create_engine(f'postgresql://{conf.POSTGRES_USER}:{conf.POSTGRES_PASSWORD}@{conf.POSTGRES_HOST}:{conf.POSTGRES_PORT}/{conf.POSTGRES_DB}')
+import config
+engine = create_engine(config.DB_URI)
 
 dict_cantons_names = {
     'Uri (UR)': 'UR',

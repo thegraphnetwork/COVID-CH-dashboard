@@ -14,9 +14,8 @@ from scipy.signal import correlate, correlation_lags
 import scipy.cluster.hierarchy as hcluster
 from sqlalchemy import create_engine
 import matplotlib.pyplot as plt
-import config as conf
-engine = create_engine(f'postgresql://{conf.POSTGRES_USER}:{conf.POSTGRES_PASSWORD}@{conf.POSTGRES_HOST}:{conf.POSTGRES_PORT}/{conf.POSTGRES_DB}')
-
+import config
+engine = create_engine(config.DB_URI)
 
 def get_curve_all(curve):
     

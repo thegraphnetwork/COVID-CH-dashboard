@@ -17,9 +17,8 @@ from PIL import Image
 import matplotlib.pyplot as plt 
 from get_data import get_canton_data 
 from sqlalchemy import create_engine
-import config as conf
-engine = create_engine(f'postgresql://{conf.POSTGRES_USER}:{conf.POSTGRES_PASSWORD}@{conf.POSTGRES_HOST}:{conf.POSTGRES_PORT}/{conf.POSTGRES_DB}')
-
+import config
+engine = create_engine(config.DB_URI)
 
 def make_inference_sir():
     Prev_post = pd.read_sql_table('prev_post', engine, schema = 'switzerland', index_col = 'datum')
