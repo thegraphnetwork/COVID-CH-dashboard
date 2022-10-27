@@ -24,10 +24,8 @@ import streamlit as st
 from get_data import get_canton_data, get_curve
 from plots import scatter_plot_cases_hosp
 from sqlalchemy import create_engine
-engine = create_engine(
-    "postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
-
-
+import config
+engine = create_engine(config.DB_URI)
 
 
 

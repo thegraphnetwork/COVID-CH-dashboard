@@ -14,8 +14,8 @@ from forecast import download_button
 from get_data import get_curve
 from sqlalchemy import create_engine
 from plots import scatter_plot_cases_hosp_all
-engine = create_engine(
-    "postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
+import config
+engine = create_engine(config.DB_URI)
 
 dict_cantons_names = {
     'Uri (UR)': 'UR',

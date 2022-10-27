@@ -17,8 +17,8 @@ from PIL import Image
 import matplotlib.pyplot as plt 
 from get_data import get_canton_data 
 from sqlalchemy import create_engine
-engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
-
+import config
+engine = create_engine(config.DB_URI)
 
 def make_inference_sir():
     Prev_post = pd.read_sql_table('prev_post', engine, schema = 'switzerland', index_col = 'datum')

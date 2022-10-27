@@ -65,6 +65,10 @@ def scatter_plot_cases_hosp(region):
     sns.regplot(x=cases['2022-01-01':'2022-03-31'].entries,
                     y=hosp['2022-01-01':'2022-03-31'].entries,
                     label='2022-Q1', color='tab:green',robust=True, ax=ax)
+    
+    sns.regplot(x=cases['2022-04-01':'2022-06-30'].entries,
+                    y=hosp['2022-04-01':'2022-06-30'].entries,
+                    label='2022-Q2', color='tab:red',robust=True, ax=ax)
 
     ax.set_title('Cases vs hospitalizations in Geneva')
 

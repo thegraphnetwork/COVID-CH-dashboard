@@ -6,14 +6,15 @@ Created on Sat Dec 18 22:31:57 2021
 @author: eduardoaraujo
 """
 #import arviz as az
+
 import plotly.graph_objects as go
 import pandas as pd 
 import streamlit as st 
 from PIL import Image
 from get_data import get_canton_data 
 from sqlalchemy import create_engine
-
-engine = create_engine("postgresql://epigraph:epigraph@localhost:5432/epigraphhub")
+import config
+engine = create_engine(config.DB_URI)
 
 
 

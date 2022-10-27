@@ -1,0 +1,14 @@
+name: env-covidch
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+# - docker-compose
+  - pip
+  - gdal
+  - arviz
+  - geopandas
+  - psycopg2
+  - statsmodels
+  - openpyxl
+    
